@@ -30,14 +30,41 @@ export class AuthService {
     return error ? traducirError(error.message) : null;
   }
 
+  /**
+   * Crea una cuenta nueva. Si Supabase pide confirmar el correo, no hay sesión
+   * hasta que la persona abra el enlace (pendienteConfirmar = true).
+   */
+  async registrar(nombre: string, correo: string, clave: string): Promise<ResultadoRegistro> {
+    const { data, error } = await this.supabase.auth.signUp({
+      email: correo,
+      password: clave,
+      options: { data: { nombre }, emailRedirectTo: `${window.location.origin}/login` },
+    });
+    if (error) return { error: traducirError(error.message), pendienteConfirmar: false };
+    // Correo ya registrado: Supabase responde sin error pero con identities vacías
+    if (data.user && data.user.identities?.length === 0) {
+      return { error: 'Ese correo ya tiene una cuenta. Inicia sesión.', pendienteConfirmar: false };
+    }
+    return { error: null, pendienteConfirmar: !data.session };
+  }
+
   async salir(): Promise<void> {
     await this.supabase.auth.signOut({ scope: 'local' });
   }
 }
 
+export interface ResultadoRegistro {
+  error: string | null;
+  pendienteConfirmar: boolean;
+}
+
 function traducirError(msg: string): string {
   if (/invalid login credentials/i.test(msg)) return 'Correo o contraseña incorrectos.';
-  if (/email not confirmed/i.test(msg)) return 'Confirma tu correo antes de entrar.';
+  if (/email not confirmed/i.test(msg)) return 'Confirma tu correo antes de entrar (revisa tu bandeja y spam).';
+  if (/already registered|already been registered/i.test(msg)) return 'Ese correo ya tiene una cuenta. Inicia sesión.';
+  if (/password should be at least|weak password/i.test(msg)) return 'La contraseña es muy débil: usa al menos 8 caracteres.';
+  if (/rate limit|too many/i.test(msg)) return 'Demasiados intentos. Espera unos minutos y vuelve a intentar.';
+  if (/invalid.*email|email.*invalid/i.test(msg)) return 'El correo no es válido.';
   if (/fetch|network/i.test(msg)) return 'Sin conexión con el servidor.';
   return msg;
 }

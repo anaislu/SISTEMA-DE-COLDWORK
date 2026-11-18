@@ -1,0 +1,26 @@
+.caja {
+  max-width: 30rem;
+  margin: 2rem auto;
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 1rem;
+  padding: 2rem;
+  h1 { margin: 0 0 0.5rem; font-size: 1.5rem; }
+}
+.sub { margin: 0 0 1.25rem; color: var(--p-text-muted-color); line-height: 1.5; }
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  label { font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; }
+  p-button { margin-top: 1rem; }
+}
+.opcional { font-weight: 400; color: var(--p-text-muted-color); }
+.nota {
+  margin: 1.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+  display: flex;
+  gap: 0.5rem;
+  line-height: 1.4;
+}

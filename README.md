@@ -51,7 +51,7 @@ SISTEMA-DE-COLDWORK/
 │   │   │   ├── theme/               tema de PrimeNG
 │   │   │   └── utils/               montos.ts (IGV en céntimos)
 │   │   ├── layout/shell/            menú lateral + barra superior
-│   │   ├── shared/components/       emoji (Twemoji por link), proximamente
+│   │   ├── shared/components/       emoji (Flaticon por link), proximamente
 │   │   └── modules/                 UN MÓDULO POR CARPETA
 │   │       ├── auth/views/login/              vista (ts + html + scss)
 │   │       ├── inicio/views/inicio/           vista
@@ -166,5 +166,5 @@ Edita `.env` antes de levantar. El frontend queda en http://localhost:8080 y el 
 - Toda tabla de negocio lleva `empresa_id` + RLS. Toda ruta de negocio lleva `@RequiereEmpresa`.
 - Rutas públicas solo con `@Publica()`. Por defecto **todo exige token**.
 - La lógica contable atómica va en funciones SQL o triggers; la orquestación va en NestJS.
-- Emojis: solo como imagen por link (`<app-emoji codigo="1f44b" />`), nunca como carácter.
+- Emojis e íconos ilustrados: solo de **Flaticon** por link (`<app-emoji nombre="saludo" />`, catálogo en `shared/components/emoji/iconos.ts`). Nunca como carácter. Cada ícono nuevo se anota en [docs/CREDITOS.md](docs/CREDITOS.md).
 - **Nunca** se sube a git la secret key, la contraseña de la BD ni un `.env`.

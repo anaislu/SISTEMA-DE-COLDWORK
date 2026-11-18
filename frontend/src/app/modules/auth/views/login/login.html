@@ -1,8 +1,9 @@
 <main class="login">
   <section class="marca">
-    <div class="logo"><app-emoji codigo="2744" /> COLDWORK</div>
+    <div class="logo"><app-emoji nombre="copo" /> COLDWORK</div>
     <h1>Toda la empresa,<br />en un solo lugar.</h1>
     <p>Contabilidad, finanzas, personal y servicios de refrigeración industrial.</p>
+    <small class="creditos">Íconos: <a href="https://www.flaticon.es" target="_blank" rel="noopener">Flaticon</a></small>
   </section>
 
   <section class="tarjeta">
@@ -29,5 +30,6 @@
 
       <p-button type="submit" label="Entrar" icon="pi pi-sign-in" [loading]="cargando()" styleClass="w-full" />
     </form>
+    <p class="pie">¿No tienes cuenta? <a routerLink="/registro">Crear cuenta</a></p>
   </section>
 </main>

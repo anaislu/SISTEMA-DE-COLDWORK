@@ -31,7 +31,7 @@ export class SupabaseService {
   }
 
   /** ¿Responde Supabase? (para /health/ready) */
-  async disponible(timeoutMs = 3000): Promise<boolean> {
+  async disponible(timeoutMs = 8000): Promise<boolean> {
     try {
       const res = await fetch(`${this.url}/auth/v1/health`, {
         headers: { apikey: this.key },

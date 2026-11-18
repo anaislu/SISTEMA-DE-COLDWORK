@@ -1,6 +1,6 @@
 import { Component, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -10,7 +10,7 @@ import { Emoji } from '../../../../shared/components/emoji/emoji';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, ButtonModule, InputTextModule, PasswordModule, MessageModule, Emoji],
+  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, PasswordModule, MessageModule, Emoji],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })

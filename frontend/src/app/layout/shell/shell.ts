@@ -31,7 +31,12 @@ export class Shell implements OnInit {
 
   async ngOnInit() {
     try {
-      this.empresa.cargar(await this.empresasApi.mias());
+      const lista = await this.empresasApi.mias();
+      this.empresa.cargar(lista);
+      // Cuenta nueva sin empresa → pantalla "Crea tu empresa"
+      if (lista.length === 0 && !this.router.url.startsWith('/empresa/nueva')) {
+        await this.router.navigateByUrl('/empresa/nueva');
+      }
     } catch (e) {
       const sinApi = e instanceof HttpErrorResponse && e.status === 0;
       this.avisos.add({

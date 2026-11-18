@@ -1,0 +1,26 @@
+<section class="caja">
+  <h1>Crea tu empresa <app-emoji nombre="edificio" etiqueta="empresa" /></h1>
+  <p class="sub">
+    Tu cuenta aún no pertenece a ninguna empresa. Si eres el dueño o administrador, regístrala aquí y quedarás
+    como <strong>dueño</strong>.
+  </p>
+
+  <form (ngSubmit)="crear()" class="form">
+    <label for="razon">Razón social</label>
+    <input pInputText id="razon" name="razon" placeholder="COLDWORK S.A.C." [(ngModel)]="razonSocial" />
+
+    <label for="ruc">RUC <span class="opcional">(opcional)</span></label>
+    <input pInputText id="ruc" name="ruc" inputmode="numeric" maxlength="11" placeholder="20123456789" [(ngModel)]="ruc" />
+
+    @if (error()) {
+      <p-message severity="error">{{ error() }}</p-message>
+    }
+
+    <p-button type="submit" label="Crear empresa" icon="pi pi-building" [loading]="cargando()" styleClass="w-full" />
+  </form>
+
+  <p class="nota">
+    <i class="pi pi-info-circle"></i>
+    ¿Trabajas en una empresa que ya usa COLDWORK? No crees otra: pide al administrador que te agregue con tu correo.
+  </p>
+</section>

@@ -1,7 +1,7 @@
 {
-  "supabaseUrl": "http://127.0.0.1:54321",
-  "supabaseKey": "PEGAR_PUBLISHABLE_KEY_DEV",
+  "supabaseUrl": "https://xlkajikflheljiozbwej.supabase.co",
+  "supabaseKey": "sb_publishable_bXH6c2gnu7fF-pwwX_1Y-Q_ohK-81m3",
   "apiUrl": "http://localhost:3000/api",
-  "entorno": "local",
+  "entorno": "dev",
   "primeLicense": ""
 }
