@@ -1,0 +1,7 @@
+{
+  "supabaseUrl": "http://127.0.0.1:54321",
+  "supabaseKey": "PEGAR_PUBLISHABLE_KEY_DEV",
+  "apiUrl": "http://localhost:3000/api",
+  "entorno": "local",
+  "primeLicense": ""
+}

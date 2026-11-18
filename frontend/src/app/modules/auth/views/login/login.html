@@ -1,0 +1,33 @@
+<main class="login">
+  <section class="marca">
+    <div class="logo"><app-emoji codigo="2744" /> COLDWORK</div>
+    <h1>Toda la empresa,<br />en un solo lugar.</h1>
+    <p>Contabilidad, finanzas, personal y servicios de refrigeración industrial.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Iniciar sesión</h2>
+    <form (ngSubmit)="entrar()" class="form">
+      <label for="correo">Correo</label>
+      <input pInputText id="correo" name="correo" type="email" autocomplete="username" [(ngModel)]="correo" />
+
+      <label for="clave">Contraseña</label>
+      <p-password
+        inputId="clave"
+        name="clave"
+        [(ngModel)]="clave"
+        [feedback]="false"
+        [toggleMask]="true"
+        autocomplete="current-password"
+        styleClass="w-full"
+        inputStyleClass="w-full"
+      />
+
+      @if (error()) {
+        <p-message severity="error">{{ error() }}</p-message>
+      }
+
+      <p-button type="submit" label="Entrar" icon="pi pi-sign-in" [loading]="cargando()" styleClass="w-full" />
+    </form>
+  </section>
+</main>

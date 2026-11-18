@@ -1,0 +1,40 @@
+.login {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  background: linear-gradient(135deg, #082f49, #0c4a6e 55%, #0369a1);
+  color: #f0f9ff;
+}
+.marca {
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  .logo { font-weight: 700; letter-spacing: 0.08em; font-size: 1.1rem; display: flex; gap: 0.5rem; align-items: center; }
+  h1 { font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.1; margin: 0; }
+  p { opacity: 0.8; max-width: 28rem; margin: 0; }
+}
+.tarjeta {
+  align-self: center;
+  justify-self: center;
+  width: min(24rem, 90vw);
+  background: var(--p-content-background);
+  color: var(--p-text-color);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.3);
+  h2 { margin: 0 0 1.25rem; font-size: 1.35rem; }
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  label { font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; }
+  p-button { margin-top: 1rem; }
+}
+@media (max-width: 800px) {
+  .login { grid-template-columns: 1fr; }
+  .marca { padding: 2rem 1.5rem 0; }
+  .tarjeta { margin: 2rem 0; }
+}

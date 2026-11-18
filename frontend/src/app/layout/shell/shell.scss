@@ -1,0 +1,42 @@
+.shell {
+  display: grid;
+  grid-template-columns: 15.5rem 1fr;
+  min-height: 100dvh;
+}
+.lateral {
+  background: #082f49;
+  color: #e0f2fe;
+  padding: 1.25rem 0.75rem;
+  overflow-y: auto;
+  .logo { font-weight: 700; letter-spacing: 0.08em; padding: 0 0.75rem 1rem; display: flex; gap: 0.5rem; align-items: center; }
+  .grupo { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.55; padding: 1rem 0.75rem 0.35rem; }
+  a {
+    display: flex; gap: 0.65rem; align-items: center;
+    padding: 0.55rem 0.75rem; border-radius: 0.5rem;
+    color: inherit; text-decoration: none; font-size: 0.92rem;
+    &:hover { background: rgb(255 255 255 / 0.08); }
+    &.activo { background: #0369a1; color: #fff; }
+  }
+}
+.principal { display: flex; flex-direction: column; min-width: 0; background: var(--p-surface-50); }
+.barra {
+  display: flex; align-items: center; gap: 0.5rem;
+  height: 3.5rem; padding: 0 1rem;
+  background: var(--p-content-background);
+  border-bottom: 1px solid var(--p-content-border-color);
+  .espacio { flex: 1; }
+  .correo { font-size: 0.875rem; color: var(--p-text-muted-color); }
+  .empresa { font-weight: 600; font-size: 0.92rem; display: flex; gap: 0.4rem; align-items: center; }
+  .entorno { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 1rem; background: #fef3c7; color: #92400e; }
+}
+.contenido { padding: 1.5rem; }
+.solo-movil, .fondo { display: none; }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .lateral { position: fixed; inset: 0 auto 0 0; width: 16rem; z-index: 20; transform: translateX(-100%); transition: transform 0.2s; }
+  .abierto .lateral { transform: none; }
+  .abierto .fondo { display: block; position: fixed; inset: 0; border: 0; background: rgb(0 0 0 / 0.4); z-index: 10; cursor: default; }
+  .solo-movil { display: inline-flex; }
+  .correo { display: none; }
+}

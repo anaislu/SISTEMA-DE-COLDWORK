@@ -1,0 +1,13 @@
+# Secretos y entornos
+.env
+.env.*
+!.env.example
+
+# Supabase CLI (archivos locales)
+supabase/.temp/
+supabase/.branches/
+
+# SO / editores
+.DS_Store
+Thumbs.db
+.idea/

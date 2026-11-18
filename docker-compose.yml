@@ -1,0 +1,39 @@
+# Levanta las imágenes de PRODUCCIÓN en tu PC para probarlas igual que en la nube.
+#   1) Copia .env.example a .env y completa los valores.
+#   2) docker compose up --build
+#   3) Web: http://localhost:8080   ·   API: http://localhost:3000/api/health
+#
+# Para programar día a día NO hace falta: `npm start` (frontend/) y `npm run start:dev` (backend/).
+#
+# Escalar la API en local (prueba de que no guarda estado):
+#   docker compose up --build --scale backend=3   (quitar el "ports" fijo de backend primero)
+services:
+  backend:
+    build: ./backend
+    image: coldwork-backend:local
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    image: coldwork-frontend:local
+    ports:
+      - "8080:8080"
+    environment:
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      API_URL: ${API_URL:-http://localhost:3000/api}
+      APP_ENTORNO: ${APP_ENTORNO:-local}
+      PRIME_LICENSE: ${PRIME_LICENSE:-}
+    depends_on:
+      - backend
+    restart: unless-stopped
