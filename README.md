@@ -97,6 +97,15 @@ SISTEMA-DE-COLDWORK/
 └── PLAN.md                          plan, etapas y sprints
 ```
 
+## Forma rápida (cualquier PC, contra el Supabase en la nube)
+
+```powershell
+git clone https://github.com/anaislu/SISTEMA-DE-COLDWORK.git
+cd SISTEMA-DE-COLDWORK
+powershell -ExecutionPolicy Bypass -File .\iniciar.ps1
+```
+Instala dependencias la primera vez, crea `backend/.env` y abre backend y frontend en dos ventanas. Luego entra a http://localhost:4200.
+
 ## Primera vez (cada desarrollador)
 
 Requisitos: **Node 24**, **Git** y **Docker Desktop** (lo usa la base de datos local de Supabase).
