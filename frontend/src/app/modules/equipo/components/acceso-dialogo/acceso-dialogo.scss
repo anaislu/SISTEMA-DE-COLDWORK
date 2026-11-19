@@ -1,0 +1,29 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  label[for],
+  .etiqueta { font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; }
+}
+.ayuda,
+.opcional { color: var(--p-text-muted-color); font-weight: 400; font-size: 0.8rem; }
+.quien { margin: 0; font-weight: 600; display: flex; gap: 0.5rem; align-items: center; }
+.areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.5rem;
+}
+.area {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 0.6rem;
+  cursor: pointer;
+  i { color: var(--p-primary-color); }
+  span { display: flex; flex-direction: column; line-height: 1.25; }
+  small { color: var(--p-text-muted-color); font-size: 0.75rem; }
+  &.marcada { border-color: var(--p-primary-color); background: var(--p-highlight-background); }
+}
+.acciones { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }

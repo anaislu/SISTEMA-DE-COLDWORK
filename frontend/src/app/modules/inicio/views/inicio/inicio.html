@@ -1,7 +1,11 @@
 <h1 class="titulo">Hola{{ nombre() ? ', ' + nombre() : '' }} <app-emoji nombre="saludo" etiqueta="saludo" /></h1>
 <p class="sub">
   @if (empresa.actual(); as e) {
-    {{ e.razonSocial }} · rol: <strong>{{ e.rol }}</strong>.
+    {{ e.razonSocial }} · <strong>{{ nombreRol[e.rol] }}</strong>
+    @if (!veTodo(e.rol)) {
+      · tus áreas: {{ misAreas() || 'ninguna todavía (pide acceso al dueño)' }}
+    }
+    .
   }
   Los indicadores aparecen aquí a medida que se construyan los módulos.
 </p>

@@ -2,7 +2,7 @@
   <aside class="lateral">
     <div class="logo"><app-emoji nombre="copo" /> COLDWORK</div>
     <nav>
-      @for (grupo of menu; track grupo.titulo) {
+      @for (grupo of menu(); track grupo.titulo) {
         <div class="grupo">{{ grupo.titulo }}</div>
         @for (item of grupo.items; track item.ruta) {
           <a
@@ -40,7 +40,12 @@
         <span class="entorno">{{ entorno }}</span>
       }
       <span class="espacio"></span>
-      <span class="correo">{{ auth.usuario()?.email }}</span>
+      <span class="correo">
+        {{ auth.usuario()?.email }}
+        @if (empresa.rol(); as rol) {
+          <small class="rol">{{ nombreRol[rol] }}</small>
+        }
+      </span>
       <p-button icon="pi pi-sign-out" [text]="true" severity="secondary" (onClick)="salir()" ariaLabel="Cerrar sesión" />
     </header>
     <main class="contenido"><router-outlet /></main>

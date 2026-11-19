@@ -1,0 +1,121 @@
+<header class="cabecera">
+  <div>
+    <h1>Equipo y accesos</h1>
+    <p class="sub">Invita a tus trabajadores y elige a qué áreas entra cada uno. Puedes darle varias áreas a una persona.</p>
+  </div>
+  <p-button label="Invitar persona" icon="pi pi-user-plus" (onClick)="abrirInvitar()" />
+</header>
+
+<section class="pasos">
+  <div><span>1</span> Invitas su correo y marcas sus áreas.</div>
+  <div><span>2</span> La persona crea su cuenta (o entra con Google) con ese mismo correo.</div>
+  <div><span>3</span> Entra directo a la empresa y solo ve las áreas que le diste.</div>
+</section>
+
+<h2>Personas en la empresa</h2>
+<p-table [value]="miembros()" [loading]="cargando()" dataKey="usuarioId" styleClass="tabla" [tableStyle]="{ 'min-width': '44rem' }">
+  <ng-template #header>
+    <tr>
+      <th>Persona</th>
+      <th>Rol</th>
+      <th>Áreas</th>
+      <th>Estado</th>
+      <th class="derecha">Acciones</th>
+    </tr>
+  </ng-template>
+  <ng-template #body let-m>
+    <tr [class.inactivo]="!m.activo">
+      <td>
+        <strong>{{ m.nombre || '—' }}</strong>
+        @if (m.usuarioId === miId()) {
+          <small class="tu">(tú)</small>
+        }
+        <br /><small class="correo">{{ m.correo }}</small>
+      </td>
+      <td><p-tag [value]="rolTexto(m.rol)" [severity]="severidadRol(m.rol)" /></td>
+      <td>
+        @if (veTodo(m.rol)) {
+          <span class="todas">Todas</span>
+        } @else {
+          <div class="chips">
+            @for (a of m.areas; track a) {
+              <span class="chip">{{ nombreArea(a) }}</span>
+            } @empty {
+              <span class="sin">Sin áreas</span>
+            }
+          </div>
+        }
+      </td>
+      <td>
+        <p-tag [value]="m.activo ? 'Activo' : 'Bloqueado'" [severity]="m.activo ? 'success' : 'danger'" />
+      </td>
+      <td class="derecha">
+        @if (editable(m)) {
+          <p-button icon="pi pi-pencil" [text]="true" pTooltip="Editar acceso" (onClick)="abrirEditar(m)" ariaLabel="Editar acceso" />
+          <p-button
+            [icon]="m.activo ? 'pi pi-lock' : 'pi pi-lock-open'"
+            [text]="true"
+            severity="secondary"
+            [pTooltip]="m.activo ? 'Bloquear' : 'Reactivar'"
+            (onClick)="cambiarActivo(m)"
+            [ariaLabel]="m.activo ? 'Bloquear' : 'Reactivar'"
+          />
+          <p-button icon="pi pi-trash" [text]="true" severity="danger" pTooltip="Quitar" (onClick)="quitar(m)" ariaLabel="Quitar" />
+        }
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
+
+@if (invitaciones().length > 0) {
+  <h2>Invitaciones pendientes</h2>
+  <p class="sub">Aún no han entrado con su correo. Si alguien no la ve, revisa que use exactamente este correo.</p>
+  <p-table [value]="invitaciones()" dataKey="id" styleClass="tabla" [tableStyle]="{ 'min-width': '40rem' }">
+    <ng-template #header>
+      <tr>
+        <th>Correo</th>
+        <th>Rol</th>
+        <th>Áreas</th>
+        <th>Invitada</th>
+        <th class="derecha"></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-i>
+      <tr>
+        <td>
+          <strong>{{ i.correo }}</strong>
+          @if (i.nombre) {
+            <br /><small class="correo">{{ i.nombre }}</small>
+          }
+        </td>
+        <td><p-tag [value]="rolTexto(i.rol)" [severity]="severidadRol(i.rol)" /></td>
+        <td>
+          @if (veTodo(i.rol)) {
+            <span class="todas">Todas</span>
+          } @else {
+            <div class="chips">
+              @for (a of i.areas; track a) {
+                <span class="chip">{{ nombreArea(a) }}</span>
+              }
+            </div>
+          }
+        </td>
+        <td>{{ i.creadaEn | date: 'dd/MM/yyyy' }}</td>
+        <td class="derecha">
+          <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="danger" (onClick)="cancelarInvitacion(i)" />
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}
+
+<app-acceso-dialogo
+  [(visible)]="dialogoVisible"
+  [modo]="modo()"
+  [inicial]="inicial()"
+  [puedeDarAdmin]="soyDueno()"
+  [guardando]="guardando()"
+  [error]="errorDialogo()"
+  (guardar)="guardar($event)"
+/>
+<p-confirmdialog />

@@ -37,7 +37,7 @@ export class CrearEmpresa {
     this.error.set(null);
     try {
       const { id } = await this.empresas.crear({ razonSocial: this.razonSocial.trim(), ruc: ruc || undefined });
-      this.empresaActual.cargar(await this.empresas.mias());
+      await this.empresaActual.recargar();
       this.empresaActual.elegir(id);
       this.avisos.add({ severity: 'success', summary: 'Empresa creada', detail: 'Ya eres el dueño.', life: 4000 });
       await this.router.navigateByUrl('/');

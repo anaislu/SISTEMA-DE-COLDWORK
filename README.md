@@ -45,21 +45,25 @@ SISTEMA-DE-COLDWORK/
 │   │   │   ├── auth/
 │   │   │   │   ├── services/        auth.service.ts (sesión Supabase)
 │   │   │   │   └── guards/          auth.guards.ts (conSesion / sinSesion)
-│   │   │   ├── empresa/services/    empresa-actual.service.ts
+│   │   │   ├── empresa/services/    empresa-actual.service.ts (empresa actual + puede(área))
+│   │   │   ├── permisos/            areas.ts (catálogo de áreas y roles) · permisos.guards.ts (conArea / soloAdmin)
 │   │   │   ├── supabase/services/   supabase.service.ts
 │   │   │   ├── config/              runtime-config.ts (lee /config.json)
 │   │   │   ├── theme/               tema de PrimeNG
 │   │   │   └── utils/               montos.ts (IGV en céntimos)
 │   │   ├── layout/shell/            menú lateral + barra superior
 │   │   ├── shared/components/       emoji (Flaticon por link), proximamente
-│   │   └── modules/                 UN MÓDULO POR CARPETA
-│   │       ├── auth/views/login/              vista (ts + html + scss)
-│   │       ├── inicio/views/inicio/           vista
-│   │       └── empresas/
-│   │           ├── models/          empresa.model.ts (interfaces = DTOs del backend)
-│   │           ├── services/        empresas.service.ts (llamadas al backend)
-│   │           ├── views/           páginas con ruta
-│   │           └── components/      piezas reutilizables del módulo
+│   │   ├── app.routes.ts            junta las rutas de cada módulo
+│   │   └── modules/                 UN MÓDULO POR CARPETA, todos con la misma forma:
+│   │       ├── auth/                auth.routes.ts · views/login, views/registro · components/boton-google
+│   │       ├── inicio/views/inicio/
+│   │       ├── empresas/            empresas.routes.ts · models · services · views/crear-empresa
+│   │       └── equipo/
+│   │           ├── equipo.routes.ts rutas del módulo (con su guard)
+│   │           ├── models/          equipo.model.ts (interfaces = DTOs del backend)
+│   │           ├── services/        equipo.service.ts (llamadas al backend)
+│   │           ├── views/equipo/    páginas con ruta (ts + html + scss)
+│   │           └── components/      acceso-dialogo (piezas reutilizables del módulo)
 │   ├── public/config.json           configuración en tiempo de ejecución (local)
 │   ├── docker/40-runtime-config.sh  genera config.json en el contenedor
 │   ├── nginx.conf
@@ -70,8 +74,8 @@ SISTEMA-DE-COLDWORK/
 │   │   ├── main.ts / app.module.ts
 │   │   ├── config/                  env.ts (validación zod) · app.setup.ts (helmet, CORS, Swagger…)
 │   │   ├── common/                  lo compartido por todos los módulos (index.ts exporta todo)
-│   │   │   ├── decorators/          @Publica @RequiereEmpresa @Usuario @Empresa
-│   │   │   ├── enums/               rol.enum.ts
+│   │   │   ├── decorators/          @Publica @RequiereEmpresa @RequiereArea @Usuario @Empresa
+│   │   │   ├── enums/               rol.enum.ts · area.enum.ts
 │   │   │   ├── interfaces/          UsuarioActual, EmpresaActual, PeticionAutenticada
 │   │   │   └── utils/               errores-supabase.ts (error BD → HTTP)
 │   │   ├── database/supabase/       SupabaseService (cliente por usuario → RLS)
@@ -80,12 +84,15 @@ SISTEMA-DE-COLDWORK/
 │   │       │   ├── guards/          auth.guard.ts · empresa.guard.ts
 │   │       │   └── services/        verificador-jwt.service.ts
 │   │       ├── health/controllers/  health.controller.ts
-│   │       └── empresas/
-│   │           ├── controllers/     empresas.controller.ts (rutas HTTP)
-│   │           ├── services/        empresas.service.ts (lógica de negocio)
-│   │           ├── dto/             crear-empresa · actualizar-empresa · empresa-respuesta
-│   │           ├── entities/        empresa.entity.ts · miembro.entity.ts (tablas)
-│   │           └── empresas.module.ts
+│   │       ├── empresas/
+│   │       │   ├── controllers/     empresas.controller.ts (rutas HTTP)
+│   │       │   ├── services/        empresas.service.ts (lógica de negocio)
+│   │       │   ├── dto/             crear-empresa · actualizar-empresa · empresa-respuesta
+│   │       │   ├── entities/        empresa.entity.ts (tablas)
+│   │       │   └── empresas.module.ts
+│   │       └── equipo/              miembros, invitaciones y acceso por áreas (misma forma)
+│   │           ├── controllers/ · services/ · dto/ · entities/ (miembro, invitacion)
+│   │           └── equipo.module.ts
 │   ├── test/                        pruebas e2e
 │   └── Dockerfile
 │
@@ -135,6 +142,24 @@ npm start
 ```
 Abre http://localhost:4200
 
+## Accesos: roles y áreas
+
+- **Dueño**: quien crea la empresa. Ve todo y es el único que nombra administradores.
+- **Administrador**: ve todo e invita trabajadores.
+- **Trabajador**: solo ve las **áreas** que le asignen (puede tener varias): Administración, Contabilidad, Finanzas, Ventas, Logística, Área técnica, Personal.
+
+Cómo entra un trabajador: el dueño lo invita en **Equipo y accesos** con su correo y marca sus áreas → la persona crea su cuenta (o entra con Google) con ese correo → queda dentro con esas áreas. Se le puede editar, bloquear o quitar en cualquier momento.
+
+En el código: menú filtrado por `area` (`layout/shell/menu.ts`), rutas con `conArea('ventas')` y backend con `@RequiereArea(Area.Ventas)`. RLS usa `tiene_area()`.
+
+## Activar "Continuar con Google" (una vez, lo hace el dueño)
+
+1. En [Google Cloud Console](https://console.cloud.google.com/apis/credentials) crea un **ID de cliente OAuth** (tipo *Aplicación web*). En *URI de redirección autorizados* pon `https://xlkajikflheljiozbwej.supabase.co/auth/v1/callback`.
+2. En Supabase → **Authentication → Sign In / Providers → Google**: actívalo y pega el *Client ID* y el *Client Secret*.
+3. En Supabase → **Authentication → URL Configuration**: Site URL `http://localhost:4200` y en Redirect URLs `http://localhost:4200/**` (y la URL pública cuando se publique).
+
+El botón se habilita solo cuando Google está activo.
+
 ## Agregar un módulo nuevo (ej. Ventas)
 
 1. **BD:** crea la migración con `npx supabase migration new ventas`. Las tablas llevan `empresa_id` y RLS con `es_miembro()` / `tiene_rol()`.
@@ -142,12 +167,12 @@ Abre http://localhost:4200
    - `entities/venta.entity.ts`: forma de la tabla (snake_case)
    - `dto/crear-venta.dto.ts`, `dto/venta-respuesta.dto.ts`: entrada y salida validadas (camelCase)
    - `services/ventas.service.ts`: lógica, siempre con `supabase.paraUsuario(u.token)`
-   - `controllers/ventas.controller.ts`: rutas con `@RequiereEmpresa(...)`
+   - `controllers/ventas.controller.ts`: rutas con `@RequiereArea(Area.Ventas)`
    - `ventas.module.ts`: regístralo en `app.module.ts`
 3. **Frontend:** copia la estructura de `frontend/src/app/modules/empresas/`:
    - `models/venta.model.ts` (igual a los DTOs), `services/ventas.service.ts` (usa `ApiService`)
    - `views/ventas-lista/`, `views/venta-form/` (ts + html + scss) y `components/` si hace falta
-   - la ruta en `app.routes.ts` y la opción en `layout/shell/menu.ts`
+   - `ventas.routes.ts` con `canActivate: [conArea('ventas')]` (y súmalo en `app.routes.ts`), y la opción con su `area` en `layout/shell/menu.ts`
 
 ## Antes de abrir un PR
 

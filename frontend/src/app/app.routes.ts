@@ -1,45 +1,52 @@
-import { Routes } from '@angular/router';
-import { conSesion, sinSesion } from './core/auth/guards/auth.guards';
+import { Route, Routes } from '@angular/router';
+import { conSesion } from './core/auth/guards/auth.guards';
+import { conArea, soloAdmin } from './core/permisos/permisos.guards';
+import type { Area } from './core/permisos/areas';
+import { AUTH_ROUTES } from './modules/auth/auth.routes';
+import { EMPRESAS_ROUTES } from './modules/empresas/empresas.routes';
+import { EQUIPO_ROUTES } from './modules/equipo/equipo.routes';
 
 /**
- * Cada módulo del ERP es una carpeta en src/app/modules/<modulo>/views y se
- * carga solo cuando se entra (lazy loading). Las rutas que aún no existen
- * muestran "Próximamente".
+ * Rutas raíz. Cada módulo tiene su propio `<modulo>.routes.ts` y aquí solo se juntan.
+ * Todo se carga solo cuando se entra (lazy loading).
  */
-const proximamente = () => import('./shared/components/proximamente/proximamente').then((m) => m.Proximamente);
+
+/** Módulo aún no construido: muestra "Próximamente", pero ya protegido por área. */
+function enConstruccion(path: string, titulo: string, acceso: Area | 'admin'): Route {
+  return {
+    path,
+    canActivate: [acceso === 'admin' ? soloAdmin : conArea(acceso)],
+    data: { titulo },
+    loadComponent: () => import('./shared/components/proximamente/proximamente').then((m) => m.Proximamente),
+  };
+}
 
 export const routes: Routes = [
-  {
-    path: 'login',
-    canActivate: [sinSesion],
-    loadComponent: () => import('./modules/auth/views/login/login').then((m) => m.Login),
-  },
-  {
-    path: 'registro',
-    canActivate: [sinSesion],
-    loadComponent: () => import('./modules/auth/views/registro/registro').then((m) => m.Registro),
-  },
+  ...AUTH_ROUTES,
   {
     path: '',
     canActivate: [conSesion],
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     children: [
       { path: '', pathMatch: 'full', loadComponent: () => import('./modules/inicio/views/inicio/inicio').then((m) => m.Inicio) },
-      {
-        path: 'empresa/nueva',
-        loadComponent: () =>
-          import('./modules/empresas/views/crear-empresa/crear-empresa').then((m) => m.CrearEmpresa),
-      },
+      ...EMPRESAS_ROUTES,
+      ...EQUIPO_ROUTES,
+
       // Etapa 1 — Contabilidad y finanzas
-      { path: 'terceros', loadComponent: proximamente, data: { titulo: 'Clientes y proveedores' } },
-      { path: 'caja-bancos', loadComponent: proximamente, data: { titulo: 'Caja y bancos' } },
-      { path: 'ventas', loadComponent: proximamente, data: { titulo: 'Ventas' } },
-      { path: 'compras', loadComponent: proximamente, data: { titulo: 'Compras' } },
-      { path: 'cuentas-cobrar', loadComponent: proximamente, data: { titulo: 'Cuentas por cobrar' } },
-      { path: 'cuentas-pagar', loadComponent: proximamente, data: { titulo: 'Cuentas por pagar' } },
-      { path: 'contabilidad', loadComponent: proximamente, data: { titulo: 'Contabilidad' } },
-      { path: 'reportes', loadComponent: proximamente, data: { titulo: 'Reportes' } },
-      { path: 'configuracion', loadComponent: proximamente, data: { titulo: 'Configuración' } },
+      enConstruccion('terceros', 'Clientes y proveedores', 'administracion'),
+      enConstruccion('caja-bancos', 'Caja y bancos', 'finanzas'),
+      enConstruccion('ventas', 'Ventas', 'ventas'),
+      enConstruccion('compras', 'Compras', 'logistica'),
+      enConstruccion('cuentas-cobrar', 'Cuentas por cobrar', 'finanzas'),
+      enConstruccion('cuentas-pagar', 'Cuentas por pagar', 'finanzas'),
+      enConstruccion('contabilidad', 'Contabilidad', 'contabilidad'),
+      enConstruccion('reportes', 'Reportes', 'contabilidad'),
+
+      // Etapas siguientes
+      enConstruccion('servicios', 'Servicios técnicos', 'tecnica'),
+      enConstruccion('inventario', 'Inventario', 'logistica'),
+      enConstruccion('personal', 'Asistencia y planilla', 'personal'),
+      enConstruccion('configuracion', 'Configuración', 'admin'),
     ],
   },
   { path: '**', redirectTo: '' },

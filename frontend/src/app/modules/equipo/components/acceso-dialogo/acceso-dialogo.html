@@ -1,0 +1,65 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(36rem, 95vw)' }"
+  [header]="modo() === 'invitar' ? 'Invitar a una persona' : 'Editar acceso'"
+>
+  <form class="form" (ngSubmit)="enviar()">
+    @if (modo() === 'invitar') {
+      <label for="inv-correo">Correo de la persona</label>
+      <input pInputText id="inv-correo" name="correo" type="email" placeholder="tecnico@gmail.com" [(ngModel)]="correo" />
+      <small class="ayuda">Con este correo creará su cuenta o entrará con Google.</small>
+
+      <label for="inv-nombre">Nombre <span class="opcional">(opcional)</span></label>
+      <input pInputText id="inv-nombre" name="nombre" placeholder="Juan Pérez" [(ngModel)]="nombre" />
+    } @else {
+      <p class="quien"><i class="pi pi-user"></i> {{ inicial()?.nombre || inicial()?.correo }}</p>
+    }
+
+    <span class="etiqueta">Rol</span>
+    <p-selectbutton
+      name="rol"
+      [options]="opcionesRol()"
+      optionLabel="etiqueta"
+      optionValue="valor"
+      optionDisabled="deshabilitado"
+      [allowEmpty]="false"
+      [ngModel]="rol()"
+      (ngModelChange)="rol.set($event)"
+      ariaLabelledBy="Rol"
+    />
+
+    @if (rol() === 'admin') {
+      <p-message severity="info">El administrador entra a todas las áreas y puede invitar trabajadores.</p-message>
+    } @else {
+      <span class="etiqueta">Áreas a las que tendrá acceso</span>
+      <div class="areas">
+        @for (a of areas; track a.clave) {
+          <label class="area" [for]="'area-' + a.clave" [class.marcada]="seleccion.includes(a.clave)">
+            <p-checkbox name="areas" [value]="a.clave" [(ngModel)]="seleccion" [inputId]="'area-' + a.clave" />
+            <i [class]="a.icono"></i>
+            <span>
+              <strong>{{ a.nombre }}</strong>
+              <small>{{ a.descripcion }}</small>
+            </span>
+          </label>
+        }
+      </div>
+    }
+
+    @if (errorLocal() || error(); as msg) {
+      <p-message severity="error">{{ msg }}</p-message>
+    }
+
+    <div class="acciones">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="visible.set(false)" />
+      <p-button
+        type="submit"
+        [label]="modo() === 'invitar' ? 'Enviar invitación' : 'Guardar cambios'"
+        [icon]="modo() === 'invitar' ? 'pi pi-send' : 'pi pi-check'"
+        [loading]="guardando()"
+      />
+    </div>
+  </form>
+</p-dialog>

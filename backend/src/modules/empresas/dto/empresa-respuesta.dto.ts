@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Rol } from '../../../common/index.js';
+import { Area, Rol } from '../../../common/index.js';
 import type { EmpresaEntity } from '../entities/empresa.entity.js';
 
 /** Respuesta con los datos de una empresa (camelCase hacia el frontend). */
@@ -29,6 +29,7 @@ export class MiEmpresaDto {
   @ApiProperty() razonSocial!: string;
   @ApiPropertyOptional({ nullable: true, type: String }) ruc!: string | null;
   @ApiProperty({ enum: Rol }) rol!: Rol;
+  @ApiProperty({ enum: Area, isArray: true, description: 'Áreas asignadas (dueño/admin ven todas)' }) areas!: Area[];
 }
 
 export class EmpresaCreadaDto {

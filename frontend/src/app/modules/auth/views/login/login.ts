@@ -7,10 +7,11 @@ import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '../../../../core/auth/services/auth.service';
 import { Emoji } from '../../../../shared/components/emoji/emoji';
+import { BotonGoogle } from '../../components/boton-google/boton-google';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, PasswordModule, MessageModule, Emoji],
+  imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, PasswordModule, MessageModule, Emoji, BotonGoogle],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })

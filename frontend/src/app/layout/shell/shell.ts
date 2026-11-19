@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -7,7 +7,7 @@ import { SelectModule } from 'primeng/select';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { EmpresaActualService } from '../../core/empresa/services/empresa-actual.service';
-import { EmpresasService } from '../../modules/empresas/services/empresas.service';
+import { NOMBRE_ROL } from '../../core/permisos/areas';
 import { getConfig } from '../../core/config/runtime-config';
 import { Emoji } from '../../shared/components/emoji/emoji';
 import { MENU } from './menu';
@@ -21,18 +21,27 @@ import { MENU } from './menu';
 export class Shell implements OnInit {
   protected readonly auth = inject(AuthService);
   protected readonly empresa = inject(EmpresaActualService);
-  private readonly empresasApi = inject(EmpresasService);
   private readonly router = inject(Router);
   private readonly avisos = inject(MessageService);
 
-  protected readonly menu = MENU;
   protected readonly entorno = getConfig().entorno;
   protected readonly abierto = signal(false);
+  protected readonly nombreRol = NOMBRE_ROL;
+
+  /** Menú filtrado: cada persona ve solo sus áreas; los grupos vacíos se ocultan. */
+  protected readonly menu = computed(() => {
+    this.empresa.actual(); // recalcula al cambiar de empresa
+    return MENU.map((g) => ({
+      ...g,
+      items: g.items.filter((i) =>
+        i.soloAdmin ? this.empresa.esAdmin() : !i.area || this.empresa.puede(i.area),
+      ),
+    })).filter((g) => g.items.length > 0);
+  });
 
   async ngOnInit() {
     try {
-      const lista = await this.empresasApi.mias();
-      this.empresa.cargar(lista);
+      const lista = await this.empresa.asegurar();
       // Cuenta nueva sin empresa → pantalla "Crea tu empresa"
       if (lista.length === 0 && !this.router.url.startsWith('/empresa/nueva')) {
         await this.router.navigateByUrl('/empresa/nueva');

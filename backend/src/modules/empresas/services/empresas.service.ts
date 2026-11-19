@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { datosOError, type Rol, type UsuarioActual } from '../../../common/index.js';
+import { datosOError, type Area, type Rol, type UsuarioActual } from '../../../common/index.js';
 import { SupabaseService } from '../../../database/supabase/supabase.service.js';
 import {
   ActualizarEmpresaDto,
@@ -16,6 +16,7 @@ interface FilaMiEmpresa {
   razon_social: string;
   ruc: string | null;
   rol: Rol;
+  areas: Area[];
 }
 
 /**
@@ -27,9 +28,21 @@ interface FilaMiEmpresa {
 export class EmpresasService {
   constructor(private readonly supabase: SupabaseService) {}
 
+  /**
+   * Empresas del usuario. Antes acepta las invitaciones pendientes a su correo,
+   * así un trabajador invitado entra solo la primera vez que inicia sesión.
+   */
   async mias(u: UsuarioActual): Promise<MiEmpresaDto[]> {
-    const filas = datosOError(await this.supabase.paraUsuario(u.token).rpc('mis_empresas')) as FilaMiEmpresa[] | null;
-    return (filas ?? []).map((f) => ({ id: f.id, razonSocial: f.razon_social, ruc: f.ruc, rol: f.rol }));
+    const cliente = this.supabase.paraUsuario(u.token);
+    datosOError(await cliente.rpc('aceptar_invitaciones'));
+    const filas = datosOError(await cliente.rpc('mis_empresas')) as FilaMiEmpresa[] | null;
+    return (filas ?? []).map((f) => ({
+      id: f.id,
+      razonSocial: f.razon_social,
+      ruc: f.ruc,
+      rol: f.rol,
+      areas: f.areas ?? [],
+    }));
   }
 
   async crear(u: UsuarioActual, dto: CrearEmpresaDto): Promise<EmpresaCreadaDto> {

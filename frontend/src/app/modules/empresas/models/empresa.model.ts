@@ -1,6 +1,7 @@
 /** Modelos del módulo Empresas (mismos nombres que los DTOs del backend). */
+import type { Area, Rol } from '../../../core/permisos/areas';
 
-export type Rol = 'dueno' | 'admin' | 'contador' | 'trabajador';
+export type { Area, Rol };
 
 /** GET /api/v1/empresas/mias */
 export interface MiEmpresa {
@@ -8,6 +9,8 @@ export interface MiEmpresa {
   razonSocial: string;
   ruc: string | null;
   rol: Rol;
+  /** Áreas asignadas (dueño/admin ven todas aunque esté vacío). */
+  areas: Area[];
 }
 
 /** GET/PATCH /api/v1/empresas/actual */

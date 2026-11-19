@@ -8,6 +8,7 @@ import { SupabaseModule } from './database/supabase/supabase.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { EmpresasModule } from './modules/empresas/empresas.module.js';
+import { EquipoModule } from './modules/equipo/equipo.module.js';
 
 /**
  * Módulo raíz. Cada módulo de negocio del ERP (terceros, caja, ventas,
@@ -60,6 +61,7 @@ import { EmpresasModule } from './modules/empresas/empresas.module.js';
     AuthModule,
     HealthModule,
     EmpresasModule,
+    EquipoModule,
   ],
 })
 export class AppModule {}

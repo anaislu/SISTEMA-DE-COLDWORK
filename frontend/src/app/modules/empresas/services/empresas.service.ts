@@ -7,6 +7,7 @@ import type { ActualizarEmpresa, CrearEmpresa, Empresa, MiEmpresa } from '../mod
 export class EmpresasService {
   private readonly api = inject(ApiService);
 
+  /** Lista sin caché. Para la empresa actual usa EmpresaActualService.asegurar(). */
   mias(): Promise<MiEmpresa[]> {
     return this.api.get<MiEmpresa[]>('/empresas/mias');
   }

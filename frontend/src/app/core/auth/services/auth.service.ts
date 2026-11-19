@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Session } from '@supabase/supabase-js';
 import { SupabaseService } from '../../supabase/services/supabase.service';
+import { getConfig } from '../../config/runtime-config';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -48,6 +49,31 @@ export class AuthService {
     return { error: null, pendienteConfirmar: !data.session };
   }
 
+  /**
+   * Entrar (o crear cuenta) con Google. Sale de la app hacia Google y vuelve
+   * con la sesión iniciada. Requiere activar Google en Supabase → Authentication → Providers.
+   */
+  async entrarConGoogle(): Promise<string | null> {
+    const { error } = await this.supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/` },
+    });
+    return error ? traducirError(error.message) : null;
+  }
+
+  /** ¿Está activado el inicio con Google en Supabase? (endpoint público de ajustes de Auth) */
+  async googleActivo(): Promise<boolean> {
+    try {
+      const { supabaseUrl, supabaseKey } = getConfig();
+      const r = await fetch(`${supabaseUrl}/auth/v1/settings`, { headers: { apikey: supabaseKey } });
+      if (!r.ok) return false;
+      const ajustes = (await r.json()) as { external?: Record<string, boolean> };
+      return ajustes.external?.['google'] === true;
+    } catch {
+      return false;
+    }
+  }
+
   async salir(): Promise<void> {
     await this.supabase.auth.signOut({ scope: 'local' });
   }
@@ -66,5 +92,6 @@ function traducirError(msg: string): string {
   if (/rate limit|too many/i.test(msg)) return 'Demasiados intentos. Espera unos minutos y vuelve a intentar.';
   if (/invalid.*email|email.*invalid/i.test(msg)) return 'El correo no es válido.';
   if (/fetch|network/i.test(msg)) return 'Sin conexión con el servidor.';
+  if (/provider is not enabled|unsupported provider/i.test(msg)) return 'El inicio con Google aún no está activado.';
   return msg;
 }

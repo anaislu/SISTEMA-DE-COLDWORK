@@ -28,7 +28,7 @@ describe('apiInterceptor', () => {
         },
       ],
     });
-    TestBed.inject(EmpresaActualService).cargar([{ id: 'E1', razonSocial: 'COLDWORK', ruc: null, rol: 'dueno' }]);
+    TestBed.inject(EmpresaActualService).cargar([{ id: 'E1', razonSocial: 'COLDWORK', ruc: null, rol: 'dueno', areas: [] }]);
     http = TestBed.inject(HttpClient);
     ctrl = TestBed.inject(HttpTestingController);
   });
