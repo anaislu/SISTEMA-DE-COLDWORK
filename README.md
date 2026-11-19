@@ -107,7 +107,7 @@ SISTEMA-DE-COLDWORK/
 ## Forma rápida (cualquier PC, contra el Supabase en la nube)
 
 ```powershell
-git clone https://github.com/anaislu/SISTEMA-DE-COLDWORK.git
+git clone https://github.com/facturacioncoldwork-a11y/SISTEMA-DE-COLDWORK.git
 cd SISTEMA-DE-COLDWORK
 powershell -ExecutionPolicy Bypass -File .\iniciar.ps1
 ```
