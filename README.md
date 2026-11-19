@@ -142,6 +142,16 @@ npm start
 ```
 Abre http://localhost:4200
 
+## Link de prueba (se actualiza solo con cada push a `main`)
+
+| Parte | Hosting gratis | Configuración |
+|---|---|---|
+| Backend | **Render** | Blueprint [`render.yaml`](render.yaml). Pide `CORS_ORIGINS` = link de Cloudflare (+ `http://localhost:4200`) |
+| Pantalla | **Cloudflare Pages** | Raíz `frontend` · comando `node scripts/generar-config.mjs && npx ng build` · salida `dist/app/browser` · variable `API_URL` = `https://<servicio>.onrender.com/api` |
+
+En Supabase → Authentication → URL Configuration agrega el link de Cloudflare a *Redirect URLs* (`https://<proyecto>.pages.dev/**`).
+Render gratis se duerme tras ~15 min sin uso: la primera carga puede tardar unos 50 s.
+
 ## Accesos: roles y áreas
 
 - **Dueño**: quien crea la empresa. Ve todo y es el único que nombra administradores.

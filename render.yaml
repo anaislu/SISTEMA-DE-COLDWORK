@@ -1,0 +1,34 @@
+# Render Blueprint: backend NestJS de COLDWORK (link de prueba).
+# En Render: New → Blueprint → elige este repositorio. Render lee este archivo.
+# Cada push a main vuelve a desplegar solo.
+services:
+  - type: web
+    name: coldwork-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    branch: main
+    autoDeploy: true
+    # --include=dev: el compilador de Nest es dependencia de desarrollo
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: node dist/main.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      # Solo datos públicos de Supabase (la misma publishable key del frontend). NUNCA la secret key.
+      - key: SUPABASE_URL
+        value: https://xlkajikflheljiozbwej.supabase.co
+      - key: SUPABASE_KEY
+        value: sb_publishable_bXH6c2gnu7fF-pwwX_1Y-Q_ohK-81m3
+      # Link(s) del frontend separados por coma. Render lo pide al crear el Blueprint.
+      # Ej: https://coldwork.pages.dev,http://localhost:4200
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SWAGGER_ENABLED
+        value: "true"
