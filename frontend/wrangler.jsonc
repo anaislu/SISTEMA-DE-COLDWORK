@@ -1,0 +1,14 @@
+// Cloudflare Workers (solo archivos estáticos): sirve la pantalla de Angular ya compilada.
+// En Cloudflare: Path = frontend · Build command = node scripts/generar-config.mjs && npx ng build
+// · Deploy command = npx wrangler deploy · variable de compilación API_URL = URL del backend en Render.
+// "name" debe ser igual al nombre del proyecto en Cloudflare.
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "coldwork",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist/app/browser",
+    // Rutas como /equipo o /login: devuelve index.html y Angular decide qué mostrar
+    "not_found_handling": "single-page-application"
+  }
+}
