@@ -7,13 +7,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { EmpresaActualService } from '../../../../core/empresa/services/empresa-actual.service';
-import { Emoji } from '../../../../shared/components/emoji/emoji';
 import { EmpresasService } from '../../services/empresas.service';
 
 /** Vista: primera vez sin empresa → crear la empresa (quien la crea queda como dueño). */
 @Component({
   selector: 'app-crear-empresa',
-  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule, Emoji],
+  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule],
   templateUrl: './crear-empresa.html',
   styleUrl: './crear-empresa.scss',
 })

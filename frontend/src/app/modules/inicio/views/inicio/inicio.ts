@@ -3,12 +3,11 @@ import { CardModule } from 'primeng/card';
 import { AuthService } from '../../../../core/auth/services/auth.service';
 import { EmpresaActualService } from '../../../../core/empresa/services/empresa-actual.service';
 import { NOMBRE_ROL, nombreArea, veTodo } from '../../../../core/permisos/areas';
-import { Emoji } from '../../../../shared/components/emoji/emoji';
 
 /** Vista: panel de inicio. */
 @Component({
   selector: 'app-inicio',
-  imports: [CardModule, Emoji],
+  imports: [CardModule],
   templateUrl: './inicio.html',
   styleUrl: './inicio.scss',
 })

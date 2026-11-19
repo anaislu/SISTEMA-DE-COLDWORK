@@ -52,7 +52,7 @@ SISTEMA-DE-COLDWORK/
 │   │   │   ├── theme/               tema de PrimeNG
 │   │   │   └── utils/               montos.ts (IGV en céntimos)
 │   │   ├── layout/shell/            menú lateral + barra superior
-│   │   ├── shared/components/       emoji (Flaticon por link), proximamente
+│   │   ├── shared/components/       proximamente
 │   │   ├── app.routes.ts            junta las rutas de cada módulo
 │   │   └── modules/                 UN MÓDULO POR CARPETA, todos con la misma forma:
 │   │       ├── auth/                auth.routes.ts · views/login, views/registro · components/boton-google
@@ -210,5 +210,5 @@ Edita `.env` antes de levantar. El frontend queda en http://localhost:8080 y el 
 - Toda tabla de negocio lleva `empresa_id` + RLS. Toda ruta de negocio lleva `@RequiereEmpresa`.
 - Rutas públicas solo con `@Publica()`. Por defecto **todo exige token**.
 - La lógica contable atómica va en funciones SQL o triggers; la orquestación va en NestJS.
-- Emojis e íconos ilustrados: solo de **Flaticon** por link (`<app-emoji nombre="saludo" />`, catálogo en `shared/components/emoji/iconos.ts`). Nunca como carácter. Cada ícono nuevo se anota en [docs/CREDITOS.md](docs/CREDITOS.md).
+- Emojis e íconos ilustrados: solo de **Flaticon** con el link directo en el HTML (`<img class="emoji" src="https://cdn-icons-png.flaticon.com/128/2866/2866069.png" alt="saludo" />`), sin carpetas ni archivos locales. Nunca como carácter. Cada ícono nuevo se anota en [docs/CREDITOS.md](docs/CREDITOS.md).
 - **Nunca** se sube a git la secret key, la contraseña de la BD ni un `.env`.

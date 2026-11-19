@@ -16,3 +16,12 @@ body {
 .w-full {
   width: 100%;
 }
+
+/* Emojis/íconos ilustrados: <img class="emoji" src="link de Flaticon"> */
+img.emoji {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  object-fit: contain;
+  vertical-align: -0.15em;
+}
