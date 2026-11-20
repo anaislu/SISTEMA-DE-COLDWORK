@@ -1,0 +1,190 @@
+<div class="lg-toolbar">
+  <label class="lg-buscar">
+    <i class="pi pi-search"></i>
+    <input
+      type="text"
+      placeholder="Buscar por código, proveedor o producto"
+      [ngModel]="texto()"
+      (ngModelChange)="texto.set($event)"
+      aria-label="Buscar órdenes"
+    />
+  </label>
+  <label class="chk"
+    ><input type="checkbox" [ngModel]="verAnuladas()" (ngModelChange)="verAnuladas.set($event)" />
+    Ver anuladas</label
+  >
+  <span class="espacio"></span>
+  <span class="encamino"
+    >En camino: <b>{{ enCamino() | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</b></span
+  >
+  <button type="button" class="lg-cta" (click)="nueva()">
+    <i class="pi pi-plus"></i> Nueva orden
+  </button>
+</div>
+
+<div
+  class="lg-kanban"
+  [style.grid-template-columns]="'repeat(' + visibles().length + ', minmax(15rem, 1fr))'"
+>
+  @for (e of visibles(); track e) {
+    <section class="lg-col">
+      <header>
+        <span
+          ><span class="lg-chip" [style.--c]="estados[e].color">{{ estados[e].nombre }}</span></span
+        >
+        <span class="n">{{ porEstado().get(e)?.length ?? 0 }}</span>
+      </header>
+      <div class="tarjetas">
+        @if (cargando()) {
+          <div class="lg-skel" style="height: 6rem"></div>
+        }
+        @for (o of porEstado().get(e) ?? []; track o.id) {
+          <article
+            class="lg-oc"
+            [style.--c]="estados[o.estado].color"
+            (click)="ver(o)"
+            (keydown.enter)="ver(o)"
+            tabindex="0"
+          >
+            <div class="arriba">
+              <span class="cod">{{ o.codigo }}</span>
+              @if (vencida(o)) {
+                <span class="lg-chip agotado">Atrasada</span>
+              }
+            </div>
+            <strong>{{ o.proveedor.razonSocial }}</strong>
+            <span class="items">{{ o.items.length }} productos · {{ o.almacen.nombre }}</span>
+            @if (o.estado === 'parcial' || o.estado === 'enviada') {
+              <div class="avance"><span [style.width.%]="o.avance"></span></div>
+            }
+            <div class="meta">
+              <span>{{
+                o.fechaEntrega ? (o.fechaEntrega | date: 'd MMM') : (o.fecha | date: 'd MMM')
+              }}</span>
+              <span class="monto">{{ o.total | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</span>
+            </div>
+          </article>
+        } @empty {
+          @if (!cargando()) {
+            <p class="vacia">Sin órdenes</p>
+          }
+        }
+      </div>
+    </section>
+  }
+</div>
+
+<p-drawer [(visible)]="detalleVisible" position="right" [style]="{ width: 'min(38rem, 100vw)' }">
+  <ng-template #header>
+    @if (detalle(); as o) {
+      <div>
+        <span class="lg-mono">{{ o.codigo }}</span>
+        <h3 style="margin: 0.15rem 0 0">{{ o.proveedor.razonSocial }}</h3>
+      </div>
+    }
+  </ng-template>
+  @if (detalle(); as o) {
+    <div class="det">
+      <div class="estado">
+        <span class="lg-chip" [style.--c]="estados[o.estado].color">{{
+          estados[o.estado].nombre
+        }}</span>
+        <span>{{ o.avance }}% recibido</span>
+      </div>
+      <ol class="linea-estados">
+        @for (e of columnas; track e; let i = $index) {
+          <li [class.on]="columnas.indexOf(o.estado) >= i && o.estado !== 'anulada'">
+            <span></span>{{ estados[e].nombre }}
+          </li>
+        }
+      </ol>
+      <div class="datos">
+        <div>
+          <small>RUC</small><b>{{ o.proveedor.numeroDocumento }}</b>
+        </div>
+        <div>
+          <small>Llega a</small><b>{{ o.almacen.nombre }}</b>
+        </div>
+        <div>
+          <small>Emitida</small><b>{{ o.fecha | date: 'd MMM y' }}</b>
+        </div>
+        <div>
+          <small>Entrega</small
+          ><b [class.lg-neg]="vencida(o)">{{
+            o.fechaEntrega ? (o.fechaEntrega | date: 'd MMM y') : '—'
+          }}</b>
+        </div>
+      </div>
+
+      <h4>Productos</h4>
+      @for (i of o.items; track i.productoId) {
+        <div class="item">
+          <div class="nom">
+            <b>{{ i.nombre }}</b
+            ><span class="lg-mono"
+              >{{ i.sku }} ·
+              {{ i.costoUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</span
+            >
+          </div>
+          <div class="prog">
+            <span
+              >{{ i.cantidadRecibida | number: '1.0-3' }} / {{ i.cantidad | number: '1.0-3' }}
+              {{ i.unidad }}</span
+            >
+            <div class="avance">
+              <span [style.width.%]="(i.cantidadRecibida / i.cantidad) * 100"></span>
+            </div>
+          </div>
+          <b class="sub">{{ i.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+        </div>
+      }
+
+      <div class="lg-ticket" style="margin-top: 1rem">
+        <div class="fila">
+          <span>Valor de compra</span
+          ><strong>{{ o.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        </div>
+        <div class="fila">
+          <span>IGV 18 %</span
+          ><strong>{{ o.igv | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        </div>
+        <div class="fila total">
+          <span>Total</span
+          ><strong>{{ o.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        </div>
+      </div>
+      @if (o.notas) {
+        <p class="notas"><i class="pi pi-comment"></i> {{ o.notas }}</p>
+      }
+
+      <div class="acciones">
+        @if (o.estado === 'borrador') {
+          <button type="button" class="lg-cta" [disabled]="trabajando()" (click)="enviar(o)">
+            <i class="pi pi-send"></i> Enviar al proveedor
+          </button>
+        }
+        @if (o.estado === 'enviada' || o.estado === 'parcial') {
+          <button type="button" class="lg-cta" (click)="recibir(o)">
+            <i class="pi pi-download"></i> Registrar llegada
+          </button>
+        }
+        <button type="button" class="lg-cta lg-cta--suave" (click)="repetir(o)">
+          <i class="pi pi-copy"></i> Repetir pedido
+        </button>
+        @if (o.estado === 'borrador' || o.estado === 'enviada') {
+          <button
+            type="button"
+            class="lg-cta lg-cta--suave peligro"
+            [disabled]="trabajando()"
+            (click)="anular(o)"
+          >
+            <i class="pi pi-ban"></i> Anular
+          </button>
+        }
+      </div>
+    </div>
+  }
+</p-drawer>
+
+<app-orden-dialogo [(visible)]="dialogo" [sugeridos]="sugeridos()" (creada)="alCrear($event)" />
+<p-confirmdialog />
