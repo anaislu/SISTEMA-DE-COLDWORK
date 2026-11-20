@@ -13,6 +13,9 @@ export class AlmacenesService {
   crear(datos: GuardarAlmacen): Promise<Almacen> {
     return this.api.post('/logistica/almacenes', datos);
   }
+  eliminar(id: string): Promise<void> {
+    return this.api.delete(`/logistica/almacenes/${id}`);
+  }
   actualizar(id: string, datos: Partial<GuardarAlmacen>): Promise<Almacen> {
     return this.api.patch(`/logistica/almacenes/${id}`, datos);
   }

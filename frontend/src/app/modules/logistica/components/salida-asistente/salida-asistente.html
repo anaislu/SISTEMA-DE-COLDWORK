@@ -159,8 +159,9 @@
           <div class="full lg-lineas">
             @for (l of lineas(); track l.producto.id) {
               <div class="resumen-linea">
-                <span>{{ l.producto.nombre }}</span
-                ><b>{{ l.cantidad | number: '1.0-3' }} {{ l.producto.unidad }}</b>
+                <span>{{ l.producto.nombre }}</span><b
+                  >{{ l.cantidad | number: '1.0-3' }} {{ l.producto.unidad }}</b
+                >
               </div>
             }
           </div>

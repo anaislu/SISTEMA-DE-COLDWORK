@@ -2,8 +2,12 @@
 
 ## Cómo crear las tablas en Supabase
 
-Todo el SQL está en **`supabase/migrations/20261120000001_logistica.sql`**.
-Supabase → **SQL Editor** → pega el archivo completo → **Run**. Se ejecuta una sola vez.
+Son **dos archivos** y se ejecutan **en este orden** (una sola vez cada uno):
+
+1. `supabase/migrations/20261120000001_logistica.sql` → tablas, RLS y funciones de stock.
+2. `supabase/migrations/20261121000001_logistica_plazos_crud.sql` → plazos de entrega, seguimiento al cliente y eliminar/editar.
+
+Supabase → **SQL Editor** → pega el archivo completo → **Run**.
 (No lo crees a mano tabla por tabla: también crea las reglas RLS y las funciones que mueven el stock.)
 
 Requiere que ya estén las migraciones 0001 (empresas) y 0002 (equipo y áreas).
@@ -16,7 +20,7 @@ Requiere que ya estén las migraciones 0001 (empresas) y 0002 (equipo y áreas).
 | `almacenes` | Dónde se guarda el stock | codigo (ALM-01), nombre, tipo (`principal` / `movil` / `obra`), direccion, responsable, activo |
 | `productos` | Catálogo | sku, nombre, descripcion, tipo (`repuesto` / `gas_refrigerante` / `herramienta` / `insumo` / `equipo`), marca, unidad, stock_minimo, costo_promedio, activo |
 | `stock` | Cantidad por producto y almacén | producto_id, almacen_id, cantidad (nunca negativa) |
-| `ordenes_compra` | Pedido al proveedor | numero, proveedor_id, almacen_id, estado (`borrador` → `enviada` → `parcial` → `recibida` / `anulada`), fecha, fecha_entrega, notas |
+| `ordenes_compra` | Pedido al proveedor | numero, proveedor_id, almacen_id, estado (`borrador` → `enviada` → `parcial` → `recibida` / `anulada`), fecha, notas, **plazo_texto** ("2-3 semanas"), **entrega_desde / entrega_hasta** (ventana calculada), **fecha_llegada_real**, **cliente**, **compromiso_cliente**, **entregado_cliente** |
 | `ordenes_compra_items` | Productos del pedido | orden_id, producto_id, cantidad, cantidad_recibida, costo_unitario |
 | `llegadas` | Entrada de producto | numero, almacen_id, proveedor_id, orden_id, guia_remision, comprobante, notas |
 | `salidas` | Salida o despacho | numero, almacen_id, motivo (`servicio_tecnico` / `venta` / `consumo_interno` / `merma` / `transferencia`), almacen_destino_id, destino, responsable, referencia |
@@ -32,6 +36,23 @@ Todas llevan `empresa_id` y RLS: solo las ve quien tiene el área **Logística**
 | `registrar_salida` | Valida que alcance el stock, lo resta, escribe el kardex; en transferencia lo suma al destino |
 | `crear_orden_compra` / `cambiar_estado_oc` | Crea la OC con su número correlativo, la envía o la anula |
 | `resumen_logistica` | Indicadores del panel |
+
+## Plazos de entrega y seguimiento al cliente
+
+- El proveedor dice "2-3 semanas", "1 mes" o una fecha exacta: se guarda el texto y la app calcula la **ventana** de llegada desde la fecha de la orden.
+- Al recibir todo, la BD llena `fecha_llegada_real` con la fecha que se puso en la llegada (por defecto hoy).
+- Con `cliente` y `compromiso_cliente`, la app avisa si la llegada estimada pasa la fecha prometida, y se marca `entregado_cliente` cuando se entrega.
+
+## Eliminar (CRUD)
+
+| Qué | Qué pasa en la BD |
+|---|---|
+| Producto, proveedor, almacén | Se borra de verdad. Si tiene historial (movimientos, órdenes, stock), la BD lo impide y la app sugiere **desactivarlo**. |
+| Orden de compra | Se borra con sus productos. Si ya tiene llegadas, primero se eliminan esas llegadas. |
+| Llegada | `eliminar_llegada`: resta el stock que entró, borra su kardex y la OC vuelve a quedar pendiente. Si ese stock ya salió, no deja. |
+| Salida | `eliminar_salida`: devuelve el stock (en transferencias, lo quita del destino). |
+
+Las cantidades de una llegada o salida no se editan: se elimina y se registra de nuevo, así el kardex siempre cuadra.
 
 `stock` y `movimientos` **no se editan a mano**. Si quieres cargar un saldo inicial, hazlo como una "Llegada → Compra directa" desde la app, así queda en el kardex.
 

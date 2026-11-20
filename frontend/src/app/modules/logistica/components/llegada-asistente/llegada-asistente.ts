@@ -8,7 +8,13 @@ import { SelectModule } from 'primeng/select';
 import type { Llegada, OrdenCompra, Producto } from '../../models/logistica.model';
 import { LogisticaStore, mensajeError } from '../../services/logistica-store.service';
 import { MovimientosService } from '../../services/movimientos.service';
+import { diasEntre, hoyISO } from '../../models/plazos';
 import { SelectorProducto } from '../selector-producto/selector-producto';
+
+/** Hoy → ahora mismo; otro día → ese día a mediodía (hora local). */
+function aFechaHora(dia: string): string {
+  return dia === hoyISO() ? new Date().toISOString() : new Date(`${dia}T12:00:00`).toISOString();
+}
 
 interface LineaLlegada {
   producto: Producto;
@@ -56,9 +62,24 @@ export class LlegadaAsistente {
   protected readonly guia = signal('');
   protected readonly comprobante = signal('');
   protected readonly notas = signal('');
+  /** Día en que llegó de verdad (por defecto hoy). */
+  protected readonly fechaLlegada = signal(hoyISO());
+  protected readonly hoy = hoyISO();
   protected readonly guardando = signal(false);
   protected readonly error = signal<string | null>(null);
 
+  /** Comparación con lo que dijo el proveedor. */
+  protected readonly puntualidad = computed(() => {
+    const o = this.orden();
+    if (!o?.entregaHasta) return null;
+    const d = diasEntre(o.entregaHasta, this.fechaLlegada());
+    return d > 0
+      ? {
+          texto: `Llegó ${d} día(s) tarde respecto a lo prometido (${o.plazoTexto ?? 'fecha'})`,
+          color: '#dc2626',
+        }
+      : { texto: `Llegó a tiempo (${o.plazoTexto ?? 'fecha'})`, color: '#059669' };
+  });
   protected readonly orden = computed(
     () => this.ordenes().find((o) => o.id === this.ordenId()) ?? null,
   );
@@ -87,6 +108,7 @@ export class LlegadaAsistente {
       this.guia.set('');
       this.comprobante.set('');
       this.notas.set('');
+      this.fechaLlegada.set(hoyISO());
       this.lineas.set([]);
       this.proveedorId.set(null);
       const ini = this.ordenInicial();
@@ -165,6 +187,7 @@ export class LlegadaAsistente {
         guiaRemision: this.guia().trim(),
         comprobante: this.comprobante().trim(),
         notas: this.notas().trim(),
+        fecha: aFechaHora(this.fechaLlegada()),
         items: this.lineas().map((l) => ({
           productoId: l.producto.id,
           cantidad: l.cantidad,

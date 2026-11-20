@@ -15,6 +15,9 @@ import {
 import { LogisticaStore } from '../../services/logistica-store.service';
 import { MovimientosService } from '../../services/movimientos.service';
 import { ProductosService } from '../../services/productos.service';
+import { OrdenesCompraService } from '../../services/ordenes-compra.service';
+import { colorCliente, colorLlegada, seguimiento } from '../../models/plazos';
+import type { OrdenCompra } from '../../models/logistica.model';
 
 interface Actividad {
   id: string;
@@ -44,12 +47,25 @@ interface Actividad {
 export class Panel implements OnInit {
   private readonly productosApi = inject(ProductosService);
   private readonly movimientosApi = inject(MovimientosService);
+  private readonly ocApi = inject(OrdenesCompraService);
   private readonly router = inject(Router);
   protected readonly store = inject(LogisticaStore);
 
   protected readonly resumen = signal<ResumenLogistica | null>(null);
   protected readonly llegadas = signal<Llegada[]>([]);
   protected readonly salidas = signal<Salida[]>([]);
+  protected readonly ordenes = signal<OrdenCompra[]>([]);
+  protected readonly colorLlegada = colorLlegada;
+  protected readonly colorCliente = colorCliente;
+
+  /** Lo que está en camino, lo más próximo (o atrasado) primero. */
+  protected readonly proximas = computed(() =>
+    this.ordenes()
+      .filter((o) => o.estado === 'enviada' || o.estado === 'parcial')
+      .map((o) => ({ o, s: seguimiento(o) }))
+      .sort((a, b) => (a.o.entregaHasta ?? '9999').localeCompare(b.o.entregaHasta ?? '9999'))
+      .slice(0, 6),
+  );
   protected readonly cargando = signal(true);
   protected readonly tiposAlmacen = TIPOS_ALMACEN;
 
@@ -105,11 +121,13 @@ export class Panel implements OnInit {
 
   async ngOnInit() {
     try {
-      const [r, l, s] = await Promise.all([
+      const [r, l, s, o] = await Promise.all([
         this.productosApi.resumen(),
         this.movimientosApi.llegadas(),
         this.movimientosApi.salidas(),
+        this.ocApi.listar(),
       ]);
+      this.ordenes.set(o);
       this.resumen.set(r);
       this.llegadas.set(l);
       this.salidas.set(s);
@@ -118,6 +136,10 @@ export class Panel implements OnInit {
     } finally {
       this.cargando.set(false);
     }
+  }
+
+  protected verOc(id: string) {
+    void this.router.navigate(['/logistica/ordenes-compra'], { queryParams: { ver: id } });
   }
 
   protected pedir(productoId: string) {

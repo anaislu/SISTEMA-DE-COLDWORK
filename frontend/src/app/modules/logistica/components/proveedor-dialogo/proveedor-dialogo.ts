@@ -6,6 +6,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import type { Proveedor } from '../../models/logistica.model';
+import { usarConfirmacion } from '../../services/confirmar';
 import { LogisticaStore, mensajeError } from '../../services/logistica-store.service';
 import { ProveedoresService } from '../../services/proveedores.service';
 
@@ -159,6 +160,17 @@ type TipoDoc = Proveedor['tipoDocumento'];
           <p class="error"><i class="pi pi-exclamation-circle"></i> {{ e }}</p>
         }
         <div class="full lg-pie-dialogo">
+          @if (proveedor()) {
+            <button
+              type="button"
+              class="lg-cta lg-cta--suave lg-peligro"
+              style="margin-right: auto"
+              [disabled]="guardando()"
+              (click)="eliminar()"
+            >
+              <i class="pi pi-trash"></i> Eliminar
+            </button>
+          }
           <button type="button" class="lg-cta lg-cta--suave" (click)="visible.set(false)">
             Cancelar
           </button>
@@ -188,6 +200,7 @@ type TipoDoc = Proveedor['tipoDocumento'];
 export class ProveedorDialogo {
   private readonly api = inject(ProveedoresService);
   private readonly store = inject(LogisticaStore);
+  private readonly confirmar = usarConfirmacion();
 
   readonly visible = model(false);
   readonly proveedor = input<Proveedor | null>(null);
@@ -258,6 +271,31 @@ export class ProveedorDialogo {
       this.visible.set(false);
     } catch (e) {
       this.error.set(mensajeError(e) ?? 'No se pudo guardar');
+    } finally {
+      this.guardando.set(false);
+    }
+  }
+
+  /** DELETE real en la BD. Si tiene historial, la API responde por qué y se sugiere desactivar. */
+  async eliminar() {
+    const x = this.proveedor();
+    if (!x) return;
+    if (
+      !(await this.confirmar(
+        `¿Eliminar ${x.razonSocial}?`,
+        'Se borra de la base de datos. Esta acción no se puede deshacer.',
+      ))
+    )
+      return;
+    this.guardando.set(true);
+    this.error.set(null);
+    try {
+      await this.api.eliminar(x.id);
+      await this.store.recargar();
+      this.store.ok('Proveedor eliminado', x.razonSocial);
+      this.visible.set(false);
+    } catch (e) {
+      this.error.set(mensajeError(e) ?? 'No se pudo eliminar');
     } finally {
       this.guardando.set(false);
     }

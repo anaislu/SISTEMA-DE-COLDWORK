@@ -108,7 +108,16 @@ export interface OrdenCompra {
   codigo: string;
   estado: EstadoOc;
   fecha: string;
-  fechaEntrega: string | null;
+  /** Lo que dijo el proveedor: "2-3 semanas", "1 mes", "Fecha exacta". */
+  plazoTexto: string | null;
+  /** Ventana estimada de llegada. Con fecha exacta, desde = hasta. */
+  entregaDesde: string | null;
+  entregaHasta: string | null;
+  /** Se llena sola cuando llega todo. */
+  fechaLlegadaReal: string | null;
+  cliente: string | null;
+  compromisoCliente: string | null;
+  entregadoCliente: string | null;
   notas: string | null;
   proveedor: { id: string; razonSocial: string; numeroDocumento: string };
   almacen: { id: string; nombre: string };
@@ -119,13 +128,27 @@ export interface OrdenCompra {
   avance: number;
 }
 
-export interface CrearOrdenCompra {
+export interface PlazoOrden {
+  plazoTexto?: string;
+  entregaDesde?: string | null;
+  entregaHasta?: string | null;
+  cliente?: string;
+  compromisoCliente?: string | null;
+  notas?: string;
+}
+
+export interface CrearOrdenCompra extends PlazoOrden {
   proveedorId: string;
   almacenId: string;
-  fechaEntrega?: string;
-  notas?: string;
   enviar?: boolean;
   items: { productoId: string; cantidad: number; costoUnitario: number }[];
+}
+
+export interface ActualizarOrdenCompra extends PlazoOrden {
+  proveedorId?: string;
+  almacenId?: string;
+  entregadoCliente?: string | null;
+  items?: { productoId: string; cantidad: number; costoUnitario: number }[];
 }
 
 export interface LineaDocumento {
@@ -158,7 +181,23 @@ export interface CrearLlegada {
   guiaRemision?: string;
   comprobante?: string;
   notas?: string;
+  /** Cuándo llegó de verdad (ISO). Por defecto, ahora. */
+  fecha?: string;
   items: { productoId: string; cantidad: number; costoUnitario: number }[];
+}
+
+export interface ActualizarLlegada {
+  guiaRemision?: string;
+  comprobante?: string;
+  notas?: string;
+  fecha?: string;
+}
+
+export interface ActualizarSalida {
+  destino?: string;
+  responsable?: string;
+  referencia?: string;
+  notas?: string;
 }
 
 export interface Salida {

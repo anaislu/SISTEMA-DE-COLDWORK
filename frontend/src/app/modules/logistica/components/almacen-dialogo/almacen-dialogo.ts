@@ -5,6 +5,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TIPOS_ALMACEN, type Almacen, type TipoAlmacen } from '../../models/logistica.model';
 import { AlmacenesService } from '../../services/almacenes.service';
+import { usarConfirmacion } from '../../services/confirmar';
 import { LogisticaStore, mensajeError } from '../../services/logistica-store.service';
 
 /** Crear o editar un almacén. */
@@ -92,6 +93,17 @@ import { LogisticaStore, mensajeError } from '../../services/logistica-store.ser
           <p class="error"><i class="pi pi-exclamation-circle"></i> {{ e }}</p>
         }
         <div class="full lg-pie-dialogo">
+          @if (almacen()) {
+            <button
+              type="button"
+              class="lg-cta lg-cta--suave lg-peligro"
+              style="margin-right: auto"
+              [disabled]="guardando()"
+              (click)="eliminar()"
+            >
+              <i class="pi pi-trash"></i> Eliminar
+            </button>
+          }
           <button type="button" class="lg-cta lg-cta--suave" (click)="visible.set(false)">
             Cancelar
           </button>
@@ -106,6 +118,7 @@ import { LogisticaStore, mensajeError } from '../../services/logistica-store.ser
 export class AlmacenDialogo {
   private readonly api = inject(AlmacenesService);
   private readonly store = inject(LogisticaStore);
+  private readonly confirmar = usarConfirmacion();
 
   readonly visible = model(false);
   readonly almacen = input<Almacen | null>(null);
@@ -159,6 +172,31 @@ export class AlmacenDialogo {
       this.visible.set(false);
     } catch (e) {
       this.error.set(mensajeError(e) ?? 'No se pudo guardar');
+    } finally {
+      this.guardando.set(false);
+    }
+  }
+
+  /** DELETE real en la BD. Si tiene historial, la API responde por qué y se sugiere desactivar. */
+  async eliminar() {
+    const x = this.almacen();
+    if (!x) return;
+    if (
+      !(await this.confirmar(
+        `¿Eliminar ${x.nombre}?`,
+        'Se borra de la base de datos. Esta acción no se puede deshacer.',
+      ))
+    )
+      return;
+    this.guardando.set(true);
+    this.error.set(null);
+    try {
+      await this.api.eliminar(x.id);
+      await this.store.recargar();
+      this.store.ok('Almacén eliminado', x.nombre);
+      this.visible.set(false);
+    } catch (e) {
+      this.error.set(mensajeError(e) ?? 'No se pudo eliminar');
     } finally {
       this.guardando.set(false);
     }

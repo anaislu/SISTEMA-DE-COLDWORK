@@ -24,7 +24,7 @@
           <span class="lg-mono">{{ o.codigo }}</span>
           <strong>{{ o.proveedor.razonSocial }}</strong>
           <small
-            >{{ o.fechaEntrega ? 'Llega ' + (o.fechaEntrega | date: 'd MMM') : 'Sin fecha' }} ·
+            >{{ o.entregaHasta ? 'Llega ' + (o.entregaHasta | date: 'd MMM') : 'Sin fecha' }} ·
             {{ o.avance }}% recibido</small
           >
           <span class="ir">Recibir <i class="pi pi-arrow-right"></i></span>
@@ -115,6 +115,18 @@
                   }
                 </tbody>
               </table>
+              <div class="acciones-doc">
+                <button type="button" class="lg-cta lg-cta--suave mini" (click)="editar(l)">
+                  <i class="pi pi-pencil"></i> Editar datos
+                </button>
+                <button
+                  type="button"
+                  class="lg-cta lg-cta--suave mini lg-peligro"
+                  (click)="eliminar(l)"
+                >
+                  <i class="pi pi-trash"></i> Eliminar
+                </button>
+              </div>
               @if (l.comprobante || l.notas) {
                 <p class="notas">
                   @if (l.comprobante) {
@@ -145,3 +157,54 @@
   [ordenInicial]="ordenInicial()"
   (registrada)="alRegistrar($event)"
 />
+
+<p-dialog
+  [visible]="!!editando()"
+  (visibleChange)="!$event && editando.set(null)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(32rem, 95vw)' }"
+  [header]="'Editar ' + (editando()?.codigo ?? '')"
+>
+  <div class="lg-form">
+    <div>
+      <label for="ed-fecha">Fecha de llegada</label>
+      <input
+        id="ed-fecha"
+        type="date"
+        class="p-inputtext"
+        [ngModel]="edFecha()"
+        (ngModelChange)="edFecha.set($event)"
+      />
+    </div>
+    <div>
+      <label for="ed-guia">Guía de remisión</label>
+      <input pInputText id="ed-guia" [ngModel]="edGuia()" (ngModelChange)="edGuia.set($event)" />
+    </div>
+    <div class="full">
+      <label for="ed-comp">Factura / boleta</label>
+      <input
+        pInputText
+        id="ed-comp"
+        [ngModel]="edComprobante()"
+        (ngModelChange)="edComprobante.set($event)"
+      />
+    </div>
+    <div class="full">
+      <label for="ed-notas">Observaciones</label>
+      <input pInputText id="ed-notas" [ngModel]="edNotas()" (ngModelChange)="edNotas.set($event)" />
+    </div>
+    <p class="full ayuda" style="margin: 0">
+      <i class="pi pi-info-circle"></i> Las cantidades no se editan: si te equivocaste, elimina la
+      llegada (se revierte el stock) y regístrala de nuevo.
+    </p>
+    <div class="full lg-pie-dialogo">
+      <button type="button" class="lg-cta lg-cta--suave" (click)="editando.set(null)">
+        Cancelar
+      </button>
+      <button type="button" class="lg-cta" [disabled]="guardando()" (click)="guardarEdicion()">
+        <i class="pi pi-check"></i> Guardar
+      </button>
+    </div>
+  </div>
+</p-dialog>

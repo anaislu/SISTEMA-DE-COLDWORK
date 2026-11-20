@@ -2,8 +2,8 @@
   [(visible)]="visible"
   [modal]="true"
   [draggable]="false"
-  [style]="{ width: 'min(56rem, 97vw)' }"
-  header="Nueva orden de compra"
+  [style]="{ width: 'min(58rem, 97vw)' }"
+  [header]="editando() ? 'Editar ' + orden()?.codigo : 'Nueva orden de compra'"
 >
   <div class="lg-form">
     <div>
@@ -17,6 +17,7 @@
         filterBy="razonSocial,numeroDocumento"
         placeholder="Elige un proveedor"
         appendTo="body"
+        [disabled]="!editaTodo()"
         [ngModel]="proveedorId()"
         (ngModelChange)="proveedorId.set($event)"
       />
@@ -34,21 +35,54 @@
         optionLabel="nombre"
         optionValue="id"
         appendTo="body"
+        [disabled]="!editaTodo()"
         [ngModel]="almacenId()"
         (ngModelChange)="almacenId.set($event)"
       />
     </div>
-    <div>
-      <label for="oc-fecha">Entrega esperada</label>
-      <input
-        id="oc-fecha"
-        type="date"
-        class="p-inputtext"
-        [ngModel]="fechaEntrega()"
-        (ngModelChange)="fechaEntrega.set($event)"
-      />
-    </div>
-    <div>
+
+    <fieldset class="full bloque">
+      <legend>
+        <i class="pi pi-truck"></i> ¿Cuándo llega?
+        <small>según la guía, el correo o la llamada del proveedor</small>
+      </legend>
+      <app-plazo-entrega [base]="base()" [inicial]="plazoInicial()" (cambio)="plazo.set($event)" />
+    </fieldset>
+
+    <fieldset class="full bloque">
+      <legend>
+        <i class="pi pi-user"></i> ¿Es para un cliente?
+        <small>opcional: para saber si llegamos a tiempo</small>
+      </legend>
+      <div class="lg-form" style="margin: 0">
+        <div>
+          <label for="oc-cli">Cliente / obra</label>
+          <input
+            id="oc-cli"
+            type="text"
+            class="p-inputtext"
+            placeholder="Plaza Vea Surco – cámara 3"
+            [ngModel]="cliente()"
+            (ngModelChange)="cliente.set($event)"
+          />
+        </div>
+        <div>
+          <label for="oc-comp">Fecha prometida al cliente</label>
+          <input
+            id="oc-comp"
+            type="date"
+            class="p-inputtext"
+            [ngModel]="compromiso()"
+            (ngModelChange)="compromiso.set($event)"
+          />
+        </div>
+        @if (aviso(); as a) {
+          <p class="full aviso" [style.--c]="a.color"><i class="pi pi-flag"></i> {{ a.texto }}</p>
+        }
+      </div>
+    </fieldset>
+
+    <div class="full">
       <label for="oc-notas">Notas para el proveedor</label>
       <input
         id="oc-notas"
@@ -61,8 +95,15 @@
     </div>
 
     <div class="full">
-      <span class="lbl">Productos</span>
-      <app-selector-producto [excluir]="ids()" (elegido)="agregar($event)" />
+      <span class="lbl"
+        >Productos
+        @if (!editaTodo()) {
+          <small>(la orden ya fue enviada: los productos no se cambian)</small>
+        }
+      </span>
+      @if (editaTodo()) {
+        <app-selector-producto [excluir]="ids()" (elegido)="agregar($event)" />
+      }
     </div>
 
     <div class="full lg-lineas">
@@ -76,6 +117,7 @@
             >
           </div>
           <p-inputnumber
+            [disabled]="!editaTodo()"
             [ngModel]="l.cantidad"
             (ngModelChange)="cambiar(i, 'cantidad', $event)"
             [min]="0"
@@ -85,6 +127,7 @@
             [ariaLabel]="'Cantidad de ' + l.producto.nombre"
           />
           <p-inputnumber
+            [disabled]="!editaTodo()"
             [ngModel]="l.costo"
             (ngModelChange)="cambiar(i, 'costo', $event)"
             [min]="0"
@@ -95,9 +138,13 @@
             inputStyleClass="w-full"
             [ariaLabel]="'Costo de ' + l.producto.nombre"
           />
-          <button type="button" class="quitar" (click)="quitar(i)" aria-label="Quitar">
-            <i class="pi pi-times"></i>
-          </button>
+          @if (editaTodo()) {
+            <button type="button" class="quitar" (click)="quitar(i)" aria-label="Quitar">
+              <i class="pi pi-times"></i>
+            </button>
+          } @else {
+            <span></span>
+          }
         </div>
       } @empty {
         <div class="lg-vacio" style="padding: 1.5rem">
@@ -116,6 +163,11 @@
         <span>IGV 18 %</span
         ><strong>{{ totales().igv | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
       </div>
+      @if (plazo().entregaHasta) {
+        <div class="fila">
+          <span>Llegada estimada</span><strong>{{ plazo().entregaHasta | date: 'd MMM y' }}</strong>
+        </div>
+      }
       <div class="fila total">
         <span>Total</span
         ><strong>{{ totales().total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
@@ -129,17 +181,24 @@
       <button type="button" class="lg-cta lg-cta--suave" (click)="visible.set(false)">
         Cancelar
       </button>
-      <button
-        type="button"
-        class="lg-cta lg-cta--suave"
-        [disabled]="guardando()"
-        (click)="guardar(false)"
-      >
-        <i class="pi pi-save"></i> Guardar borrador
-      </button>
-      <button type="button" class="lg-cta" [disabled]="guardando()" (click)="guardar(true)">
-        <i [class]="guardando() ? 'pi pi-spin pi-spinner' : 'pi pi-send'"></i> Crear y enviar
-      </button>
+      @if (!editando() || orden()?.estado === 'borrador') {
+        <button
+          type="button"
+          class="lg-cta lg-cta--suave"
+          [disabled]="guardando()"
+          (click)="guardar(false)"
+        >
+          <i class="pi pi-save"></i> {{ editando() ? 'Guardar cambios' : 'Guardar borrador' }}
+        </button>
+        <button type="button" class="lg-cta" [disabled]="guardando()" (click)="guardar(true)">
+          <i [class]="guardando() ? 'pi pi-spin pi-spinner' : 'pi pi-send'"></i>
+          {{ editando() ? 'Guardar y enviar' : 'Crear y enviar' }}
+        </button>
+      } @else {
+        <button type="button" class="lg-cta" [disabled]="guardando()" (click)="guardar(false)">
+          <i [class]="guardando() ? 'pi pi-spin pi-spinner' : 'pi pi-check'"></i> Guardar cambios
+        </button>
+      }
     </div>
   </div>
 </p-dialog>

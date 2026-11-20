@@ -45,8 +45,8 @@
               <strong>{{ o.proveedor.razonSocial }}</strong>
               <span class="sub"
                 >{{ o.items.length }} productos · llega a {{ o.almacen.nombre }}
-                @if (o.fechaEntrega) {
-                  · {{ o.fechaEntrega | date: 'd MMM' }}
+                @if (o.entregaHasta) {
+                  · {{ o.entregaHasta | date: 'd MMM' }}
                 }
               </span>
               <span class="avance"><span [style.width.%]="o.avance"></span></span>
@@ -161,6 +161,25 @@
     @case (3) {
       <div class="confirmar">
         <div class="lg-form">
+          <div>
+            <label for="ll-fecha">¿Qué día llegó?</label>
+            <input
+              id="ll-fecha"
+              type="date"
+              class="p-inputtext"
+              [max]="hoy"
+              [ngModel]="fechaLlegada()"
+              (ngModelChange)="fechaLlegada.set($event)"
+            />
+          </div>
+          <div>
+            @if (puntualidad(); as p) {
+              <span class="lbl">Puntualidad del proveedor</span>
+              <p class="aviso" [style.--c]="p.color" style="margin: 0">
+                <i class="pi pi-clock"></i> {{ p.texto }}
+              </p>
+            }
+          </div>
           <div>
             <label for="ll-guia">Guía de remisión</label>
             <input

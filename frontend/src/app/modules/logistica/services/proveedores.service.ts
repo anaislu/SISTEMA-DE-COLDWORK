@@ -13,6 +13,9 @@ export class ProveedoresService {
   crear(datos: GuardarProveedor): Promise<Proveedor> {
     return this.api.post('/logistica/proveedores', datos);
   }
+  eliminar(id: string): Promise<void> {
+    return this.api.delete(`/logistica/proveedores/${id}`);
+  }
   actualizar(id: string, datos: Partial<GuardarProveedor>): Promise<Proveedor> {
     return this.api.patch(`/logistica/proveedores/${id}`, datos);
   }
