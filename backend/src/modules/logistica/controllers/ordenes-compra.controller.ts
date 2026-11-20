@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
   ParseEnumPipe,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -13,6 +15,7 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiHeader,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiQuery,
   ApiTags,
@@ -25,7 +28,11 @@ import {
   type EmpresaActual,
   type UsuarioActual,
 } from '../../../common/index.js';
-import { CrearOrdenCompraDto, OrdenCompraDto } from '../dto/index.js';
+import {
+  ActualizarOrdenCompraDto,
+  CrearOrdenCompraDto,
+  OrdenCompraDto,
+} from '../dto/index.js';
 import { EstadoOc } from '../entities/index.js';
 import { OrdenesCompraService } from '../services/index.js';
 
@@ -96,5 +103,29 @@ export class OrdenesCompraController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.ordenes.anular(u, e, id);
+  }
+
+  /** Edita plazo, cliente, fechas y notas; en borrador también proveedor, almacén y productos. */
+  @Patch(':id')
+  @ApiOkResponse({ type: OrdenCompraDto })
+  actualizar(
+    @Usuario() u: UsuarioActual,
+    @Empresa() e: EmpresaActual,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ActualizarOrdenCompraDto,
+  ) {
+    return this.ordenes.actualizar(u, e, id, dto);
+  }
+
+  /** Elimina la orden de la BD (solo si no tiene llegadas). */
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  eliminar(
+    @Usuario() u: UsuarioActual,
+    @Empresa() e: EmpresaActual,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.ordenes.eliminar(u, e, id);
   }
 }

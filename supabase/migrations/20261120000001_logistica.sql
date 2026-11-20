@@ -270,7 +270,7 @@ begin
     public.siguiente_numero(p_empresa, 'ordenes_compra'),
     (p_datos ->> 'proveedorId')::uuid,
     (p_datos ->> 'almacenId')::uuid,
-    case when coalesce((p_datos ->> 'enviar')::boolean, false) then 'enviada' else 'borrador' end,
+    case when coalesce((p_datos ->> 'enviar')::boolean, false) then 'enviada'::public.estado_oc else 'borrador'::public.estado_oc end,
     nullif(p_datos ->> 'fechaEntrega', '')::date,
     nullif(trim(p_datos ->> 'notas'), '')
   ) returning id into v_id;

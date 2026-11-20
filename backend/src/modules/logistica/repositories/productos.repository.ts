@@ -95,4 +95,20 @@ export class ProductosRepository {
         .rpc('resumen_logistica', { p_empresa: empresaId }),
     );
   }
+
+  /** DELETE real. Devuelve false si no existía. Si tiene historial, la FK lanza 23503 (→ 409). */
+  async eliminar(
+    token: string,
+    empresaId: string,
+    id: string,
+  ): Promise<boolean> {
+    const r = await this.supabase
+      .paraUsuario(token)
+      .from('productos')
+      .delete()
+      .eq('empresa_id', empresaId)
+      .eq('id', id)
+      .select('id');
+    return ((datosOError(r) as { id: string }[] | null) ?? []).length > 0;
+  }
 }

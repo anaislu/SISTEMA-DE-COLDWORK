@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { eliminarConMensaje } from './eliminar.util.js';
 import type { EmpresaActual, UsuarioActual } from '../../../common/index.js';
 import {
   ActualizarProveedorDto,
@@ -30,6 +31,18 @@ export class ProveedoresService {
         es_proveedor: true,
         ...aFila(dto),
       }),
+    );
+  }
+
+  async eliminar(
+    u: UsuarioActual,
+    e: EmpresaActual,
+    id: string,
+  ): Promise<void> {
+    await eliminarConMensaje(
+      () => this.repo.eliminar(u.token, e.id, id),
+      'El proveedor',
+      'Este proveedor tiene órdenes de compra o llegadas registradas. Desactívalo en lugar de eliminarlo.',
     );
   }
 

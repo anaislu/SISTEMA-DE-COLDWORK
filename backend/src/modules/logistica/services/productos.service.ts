@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { eliminarConMensaje } from './eliminar.util.js';
 import type { EmpresaActual, UsuarioActual } from '../../../common/index.js';
 import {
   ActualizarProductoDto,
@@ -41,6 +42,18 @@ export class ProductosService {
   ): Promise<ProductoDto> {
     await this.repo.actualizar(u.token, e.id, id, aFila(dto));
     return ProductoDto.desde(await this.repo.obtener(u.token, e.id, id));
+  }
+
+  async eliminar(
+    u: UsuarioActual,
+    e: EmpresaActual,
+    id: string,
+  ): Promise<void> {
+    await eliminarConMensaje(
+      () => this.repo.eliminar(u.token, e.id, id),
+      'El producto',
+      'Este producto ya tiene movimientos u órdenes de compra. Para no romper el kardex, desactívalo en lugar de eliminarlo.',
+    );
   }
 
   async kardex(

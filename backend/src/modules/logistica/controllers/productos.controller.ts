@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -12,6 +13,7 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiHeader,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -89,5 +91,17 @@ export class ProductosController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.productos.kardex(u, e, id);
+  }
+
+  /** Elimina el producto de la BD (solo si no tiene historial). */
+  @Delete('productos/:id')
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  eliminar(
+    @Usuario() u: UsuarioActual,
+    @Empresa() e: EmpresaActual,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.productos.eliminar(u, e, id);
   }
 }

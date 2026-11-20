@@ -67,6 +67,30 @@ export class CrearSalidaDto {
   items!: ItemSalidaDto[];
 }
 
+/** Body de PATCH /api/v1/logistica/salidas/:id — solo datos del documento. */
+export class ActualizarSalidaDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(160)
+  destino?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  responsable?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  referencia?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  notas?: string;
+}
+
 export class SalidaDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
   @ApiProperty({ example: 'SA-000034' }) codigo!: string;
