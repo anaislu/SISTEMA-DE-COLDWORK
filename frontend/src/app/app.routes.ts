@@ -38,7 +38,7 @@ export const routes: Routes = [
       enConstruccion('terceros', 'Clientes y proveedores', 'administracion'),
       enConstruccion('caja-bancos', 'Caja y bancos', 'finanzas'),
       enConstruccion('ventas', 'Ventas', 'ventas'),
-      enConstruccion('compras', 'Compras', 'logistica'),
+      enConstruccion('compras', 'Compras (comprobantes)', 'contabilidad'),
       enConstruccion('cuentas-cobrar', 'Cuentas por cobrar', 'finanzas'),
       enConstruccion('cuentas-pagar', 'Cuentas por pagar', 'finanzas'),
       enConstruccion('contabilidad', 'Contabilidad', 'contabilidad'),

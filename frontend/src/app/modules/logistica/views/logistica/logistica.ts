@@ -1,7 +1,6 @@
 import { Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
-  ActivatedRoute,
   NavigationEnd,
   Router,
   RouterLink,
@@ -32,7 +31,6 @@ interface Pestana {
 })
 export class Logistica {
   private readonly router = inject(Router);
-  private readonly ruta = inject(ActivatedRoute);
   private readonly empresa = inject(EmpresaActualService);
   protected readonly store = inject(LogisticaStore);
 
@@ -52,9 +50,11 @@ export class Logistica {
       filter((e) => e instanceof NavigationEnd),
       startWith(null),
       map(() => {
-        let r = this.ruta.firstChild;
-        while (r?.firstChild) r = r.firstChild;
-        return (r?.snapshot.data ?? {}) as { titulo?: string; sub?: string };
+        // Se lee del estado del router (siempre listo), no de ActivatedRoute.firstChild:
+        // al entrar desde otra pantalla, la ruta hija aún no tiene snapshot.
+        let r = this.router.routerState.snapshot.root;
+        while (r.firstChild) r = r.firstChild;
+        return (r.data ?? {}) as { titulo?: string; sub?: string };
       }),
     ),
     { initialValue: {} as { titulo?: string; sub?: string } },

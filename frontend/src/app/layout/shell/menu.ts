@@ -8,6 +8,8 @@ export interface ItemMenu {
   area?: Area;
   /** Solo dueño y admin. */
   soloAdmin?: boolean;
+  /** Solo el dueño (CEO). */
+  soloDueno?: boolean;
   /** Activo solo con la ruta exacta (no con sus hijas). */
   exacta?: boolean;
 }
@@ -31,7 +33,7 @@ export const MENU: GrupoMenu[] = [
       { etiqueta: 'Clientes y proveedores', icono: 'pi pi-users', ruta: '/terceros', area: 'administracion' },
       { etiqueta: 'Caja y bancos', icono: 'pi pi-wallet', ruta: '/caja-bancos', area: 'finanzas' },
       { etiqueta: 'Ventas', icono: 'pi pi-arrow-up-right', ruta: '/ventas', area: 'ventas' },
-      { etiqueta: 'Compras', icono: 'pi pi-arrow-down-left', ruta: '/compras', area: 'logistica' },
+      { etiqueta: 'Compras', icono: 'pi pi-arrow-down-left', ruta: '/compras', area: 'contabilidad' },
       { etiqueta: 'Cuentas por cobrar', icono: 'pi pi-inbox', ruta: '/cuentas-cobrar', area: 'finanzas' },
       { etiqueta: 'Cuentas por pagar', icono: 'pi pi-send', ruta: '/cuentas-pagar', area: 'finanzas' },
     ],
@@ -65,7 +67,7 @@ export const MENU: GrupoMenu[] = [
   {
     titulo: 'Sistema',
     items: [
-      { etiqueta: 'Equipo y accesos', icono: 'pi pi-users', ruta: '/equipo', soloAdmin: true },
+      { etiqueta: 'Equipo y accesos', icono: 'pi pi-users', ruta: '/equipo', soloDueno: true },
       { etiqueta: 'Configuración', icono: 'pi pi-cog', ruta: '/configuracion', soloAdmin: true },
     ],
   },
