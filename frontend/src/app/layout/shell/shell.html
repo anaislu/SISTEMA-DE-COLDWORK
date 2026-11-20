@@ -8,7 +8,7 @@
           <a
             [routerLink]="item.ruta"
             routerLinkActive="activo"
-            [routerLinkActiveOptions]="{ exact: item.ruta === '/' }"
+            [routerLinkActiveOptions]="{ exact: item.ruta === '/' || !!item.exacta }"
             (click)="abierto.set(false)"
           >
             <i [class]="item.icono"></i> {{ item.etiqueta }}

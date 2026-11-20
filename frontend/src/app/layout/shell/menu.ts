@@ -8,6 +8,8 @@ export interface ItemMenu {
   area?: Area;
   /** Solo dueño y admin. */
   soloAdmin?: boolean;
+  /** Activo solo con la ruta exacta (no con sus hijas). */
+  exacta?: boolean;
 }
 export interface GrupoMenu {
   titulo: string;
@@ -42,10 +44,21 @@ export const MENU: GrupoMenu[] = [
     ],
   },
   {
+    titulo: 'Almacén y logística',
+    items: [
+      { etiqueta: 'Panel de almacén', icono: 'pi pi-th-large', ruta: '/logistica', area: 'logistica', exacta: true },
+      { etiqueta: 'Inventario', icono: 'pi pi-box', ruta: '/logistica/inventario', area: 'logistica' },
+      { etiqueta: 'Llegadas', icono: 'pi pi-download', ruta: '/logistica/llegadas', area: 'logistica' },
+      { etiqueta: 'Salidas', icono: 'pi pi-upload', ruta: '/logistica/salidas', area: 'logistica' },
+      { etiqueta: 'Órdenes de compra', icono: 'pi pi-file-edit', ruta: '/logistica/ordenes-compra', area: 'logistica' },
+      { etiqueta: 'Proveedores', icono: 'pi pi-truck', ruta: '/logistica/proveedores', area: 'logistica' },
+      { etiqueta: 'Almacenes', icono: 'pi pi-warehouse', ruta: '/logistica/almacenes', area: 'logistica' },
+    ],
+  },
+  {
     titulo: 'Operaciones',
     items: [
       { etiqueta: 'Servicios técnicos', icono: 'pi pi-wrench', ruta: '/servicios', area: 'tecnica' },
-      { etiqueta: 'Inventario', icono: 'pi pi-box', ruta: '/inventario', area: 'logistica' },
       { etiqueta: 'Asistencia y planilla', icono: 'pi pi-id-card', ruta: '/personal', area: 'personal' },
     ],
   },

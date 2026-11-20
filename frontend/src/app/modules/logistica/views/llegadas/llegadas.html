@@ -1,0 +1,147 @@
+<div class="franja">
+  <div class="dato">
+    <small>Llegadas este mes</small><strong>{{ delMes().n }}</strong>
+  </div>
+  <div class="dato">
+    <small>Valor ingresado</small
+    ><strong>{{ delMes().valor | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</strong>
+  </div>
+  <div class="dato">
+    <small>Órdenes esperando</small><strong>{{ pendientes().length }}</strong>
+  </div>
+  <span class="espacio"></span>
+  <button type="button" class="lg-cta" (click)="abrir()">
+    <i class="pi pi-download"></i> Registrar llegada
+  </button>
+</div>
+
+@if (pendientes().length) {
+  <section class="esperando">
+    <h4><i class="pi pi-clock"></i> Por llegar</h4>
+    <div class="fila-oc">
+      @for (o of pendientes(); track o.id) {
+        <button type="button" class="mini-oc" (click)="abrir(o.id)">
+          <span class="lg-mono">{{ o.codigo }}</span>
+          <strong>{{ o.proveedor.razonSocial }}</strong>
+          <small
+            >{{ o.fechaEntrega ? 'Llega ' + (o.fechaEntrega | date: 'd MMM') : 'Sin fecha' }} ·
+            {{ o.avance }}% recibido</small
+          >
+          <span class="ir">Recibir <i class="pi pi-arrow-right"></i></span>
+        </button>
+      }
+    </div>
+  </section>
+}
+
+<div class="lg-toolbar">
+  <label class="lg-buscar">
+    <i class="pi pi-search"></i>
+    <input
+      type="text"
+      placeholder="Buscar por proveedor, guía, factura, OC o producto"
+      [ngModel]="texto()"
+      (ngModelChange)="texto.set($event)"
+      aria-label="Buscar llegadas"
+    />
+  </label>
+</div>
+
+<div class="lg-card" style="padding: 0.4rem 0.6rem">
+  @if (cargando()) {
+    @for (i of [1, 2, 3, 4]; track i) {
+      <div class="lg-skel" style="height: 3rem; margin: 0.5rem 0"></div>
+    }
+  } @else {
+    <div class="docs">
+      @for (l of lista(); track l.id) {
+        <article class="doc" [class.abierto]="abierta() === l.id">
+          <button
+            type="button"
+            class="cab"
+            (click)="alternar(l.id)"
+            [attr.aria-expanded]="abierta() === l.id"
+          >
+            <span class="punto entrada"><i class="pi pi-arrow-down"></i></span>
+            <span class="cod"
+              ><b>{{ l.codigo }}</b
+              ><small>{{ l.fecha | date: 'd MMM y, HH:mm' }}</small></span
+            >
+            <span class="quien"
+              ><b>{{ l.proveedor?.razonSocial ?? 'Ingreso directo' }}</b
+              ><small>→ {{ l.almacen.nombre }}</small></span
+            >
+            <span class="tags">
+              @if (l.orden) {
+                <span class="lg-chip sin-punto" style="--c: #6366f1">{{ l.orden.codigo }}</span>
+              }
+              @if (l.guiaRemision) {
+                <span class="lg-chip sin-punto">GR {{ l.guiaRemision }}</span>
+              }
+            </span>
+            <span class="num"
+              ><b>{{ l.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b
+              ><small>{{ l.lineas.length }} productos</small></span
+            >
+            <i class="pi pi-chevron-down flecha"></i>
+          </button>
+          @if (abierta() === l.id) {
+            <div class="detalle">
+              <table class="lg-tabla">
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th class="num">Cantidad</th>
+                    <th class="num">Costo unit.</th>
+                    <th class="num">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (x of l.lineas; track x.productoId) {
+                    <tr>
+                      <td>
+                        <b>{{ x.nombre }}</b> <span class="lg-mono">{{ x.sku }}</span>
+                      </td>
+                      <td class="num">{{ x.cantidad | number: '1.0-3' }} {{ x.unidad }}</td>
+                      <td class="num">
+                        {{ x.costoUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-4' }}
+                      </td>
+                      <td class="num">
+                        {{
+                          x.cantidad * x.costoUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2'
+                        }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              @if (l.comprobante || l.notas) {
+                <p class="notas">
+                  @if (l.comprobante) {
+                    <span><i class="pi pi-file"></i> {{ l.comprobante }}</span>
+                  }
+                  @if (l.notas) {
+                    <span><i class="pi pi-comment"></i> {{ l.notas }}</span>
+                  }
+                </p>
+              }
+            </div>
+          }
+        </article>
+      } @empty {
+        <div class="lg-vacio">
+          <i class="pi pi-download"></i>
+          <h4>{{ llegadas().length ? 'Sin resultados' : 'Aún no registras llegadas' }}</h4>
+          <p>Cada llegada suma stock y actualiza el costo promedio del producto.</p>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<app-llegada-asistente
+  [(visible)]="asistente"
+  [ordenes]="pendientes()"
+  [ordenInicial]="ordenInicial()"
+  (registrada)="alRegistrar($event)"
+/>

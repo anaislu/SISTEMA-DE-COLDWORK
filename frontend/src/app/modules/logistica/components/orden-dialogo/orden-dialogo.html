@@ -1,0 +1,145 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(56rem, 97vw)' }"
+  header="Nueva orden de compra"
+>
+  <div class="lg-form">
+    <div>
+      <label for="oc-prov">Proveedor</label>
+      <p-select
+        inputId="oc-prov"
+        [options]="store.proveedoresActivos()"
+        optionLabel="razonSocial"
+        optionValue="id"
+        [filter]="true"
+        filterBy="razonSocial,numeroDocumento"
+        placeholder="Elige un proveedor"
+        appendTo="body"
+        [ngModel]="proveedorId()"
+        (ngModelChange)="proveedorId.set($event)"
+      />
+      @if (proveedor(); as p) {
+        <small class="lg-mono"
+          >{{ p.tipoDocumento }} {{ p.numeroDocumento }} · crédito {{ p.diasCredito }} días</small
+        >
+      }
+    </div>
+    <div>
+      <label for="oc-alm">Llega al almacén</label>
+      <p-select
+        inputId="oc-alm"
+        [options]="store.almacenesActivos()"
+        optionLabel="nombre"
+        optionValue="id"
+        appendTo="body"
+        [ngModel]="almacenId()"
+        (ngModelChange)="almacenId.set($event)"
+      />
+    </div>
+    <div>
+      <label for="oc-fecha">Entrega esperada</label>
+      <input
+        id="oc-fecha"
+        type="date"
+        class="p-inputtext"
+        [ngModel]="fechaEntrega()"
+        (ngModelChange)="fechaEntrega.set($event)"
+      />
+    </div>
+    <div>
+      <label for="oc-notas">Notas para el proveedor</label>
+      <input
+        id="oc-notas"
+        type="text"
+        class="p-inputtext"
+        placeholder="Condiciones, lugar de entrega…"
+        [ngModel]="notas()"
+        (ngModelChange)="notas.set($event)"
+      />
+    </div>
+
+    <div class="full">
+      <span class="lbl">Productos</span>
+      <app-selector-producto [excluir]="ids()" (elegido)="agregar($event)" />
+    </div>
+
+    <div class="full lg-lineas">
+      @for (l of lineas(); track l.producto.id; let i = $index) {
+        <div class="lg-linea">
+          <div class="prod">
+            <strong>{{ l.producto.nombre }}</strong
+            ><small
+              >{{ l.producto.sku }} · stock {{ l.producto.stockTotal }}
+              {{ l.producto.unidad }}</small
+            >
+          </div>
+          <p-inputnumber
+            [ngModel]="l.cantidad"
+            (ngModelChange)="cambiar(i, 'cantidad', $event)"
+            [min]="0"
+            [maxFractionDigits]="3"
+            [suffix]="' ' + l.producto.unidad"
+            inputStyleClass="w-full"
+            [ariaLabel]="'Cantidad de ' + l.producto.nombre"
+          />
+          <p-inputnumber
+            [ngModel]="l.costo"
+            (ngModelChange)="cambiar(i, 'costo', $event)"
+            [min]="0"
+            mode="currency"
+            currency="PEN"
+            locale="es-PE"
+            [maxFractionDigits]="4"
+            inputStyleClass="w-full"
+            [ariaLabel]="'Costo de ' + l.producto.nombre"
+          />
+          <button type="button" class="quitar" (click)="quitar(i)" aria-label="Quitar">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      } @empty {
+        <div class="lg-vacio" style="padding: 1.5rem">
+          <i class="pi pi-shopping-bag"></i>
+          <p>Busca y agrega los productos que vas a pedir.</p>
+        </div>
+      }
+    </div>
+
+    <div class="full lg-ticket">
+      <div class="fila">
+        <span>Valor de compra</span
+        ><strong>{{ totales().base | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+      </div>
+      <div class="fila">
+        <span>IGV 18 %</span
+        ><strong>{{ totales().igv | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+      </div>
+      <div class="fila total">
+        <span>Total</span
+        ><strong>{{ totales().total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+      </div>
+    </div>
+
+    @if (error(); as e) {
+      <p class="error"><i class="pi pi-exclamation-circle"></i> {{ e }}</p>
+    }
+    <div class="full lg-pie-dialogo">
+      <button type="button" class="lg-cta lg-cta--suave" (click)="visible.set(false)">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="lg-cta lg-cta--suave"
+        [disabled]="guardando()"
+        (click)="guardar(false)"
+      >
+        <i class="pi pi-save"></i> Guardar borrador
+      </button>
+      <button type="button" class="lg-cta" [disabled]="guardando()" (click)="guardar(true)">
+        <i [class]="guardando() ? 'pi pi-spin pi-spinner' : 'pi pi-send'"></i> Crear y enviar
+      </button>
+    </div>
+  </div>
+</p-dialog>
