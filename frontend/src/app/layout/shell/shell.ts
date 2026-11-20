@@ -34,7 +34,11 @@ export class Shell implements OnInit {
     return MENU.map((g) => ({
       ...g,
       items: g.items.filter((i) =>
-        i.soloAdmin ? this.empresa.esAdmin() : !i.area || this.empresa.puede(i.area),
+        i.soloDueno
+          ? this.empresa.esDueno()
+          : i.soloAdmin
+            ? this.empresa.esAdmin()
+            : !i.area || this.empresa.puede(i.area),
       ),
     })).filter((g) => g.items.length > 0);
   });

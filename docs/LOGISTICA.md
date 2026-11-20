@@ -2,15 +2,26 @@
 
 ## Cómo crear las tablas en Supabase
 
-Son **dos archivos** y se ejecutan **en este orden** (una sola vez cada uno):
+Son **tres archivos** y se ejecutan **en este orden** (una sola vez cada uno):
 
 1. `supabase/migrations/20261120000001_logistica.sql` → tablas, RLS y funciones de stock.
 2. `supabase/migrations/20261121000001_logistica_plazos_crud.sql` → plazos de entrega, seguimiento al cliente y eliminar/editar.
+3. `supabase/migrations/20261122000001_accesos_solo_dueno.sql` → solo el dueño (CEO) da accesos.
 
 Supabase → **SQL Editor** → pega el archivo completo → **Run**.
 (No lo crees a mano tabla por tabla: también crea las reglas RLS y las funciones que mueven el stock.)
 
 Requiere que ya estén las migraciones 0001 (empresas) y 0002 (equipo y áreas).
+
+## Quién ve qué
+
+| Persona | Rol / áreas | Ve | Da accesos |
+|---|---|---|---|
+| Dueño (CEO) | `dueno` | Todo | **Sí, solo él** |
+| Administrador | `admin` | Todo (incluida la parte contable) | No |
+| Encargado de logística | `trabajador` + área `logistica` | Inicio y Almacén y logística. **Nada contable** (ni caja, ni compras con comprobantes, ni contabilidad) | No |
+
+Para dar acceso al encargado de logística: el dueño entra a **Equipo y accesos → Invitar persona**, rol *Trabajador*, marca solo **Logística**.
 
 ## Tablas
 

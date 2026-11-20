@@ -7,15 +7,29 @@
     }
     .
   }
-  Los indicadores aparecen aquí a medida que se construyan los módulos.
+  Aquí ves solo lo de tus áreas.
 </p>
-<div class="tiles">
-  @for (t of tiles; track t.titulo) {
-    <p-card>
-      <div class="tile">
-        <i [class]="t.icono"></i>
-        <div><small>{{ t.titulo }}</small><strong>—</strong></div>
-      </div>
-    </p-card>
-  }
-</div>
+@if (logistica()) {
+  <h2 class="seccion">Almacén y logística</h2>
+  <div class="atajos">
+    @for (a of atajosLogistica; track a.ruta) {
+      <a class="atajo" [routerLink]="a.ruta" [queryParams]="a.query">
+        <i [class]="a.icono"></i>
+        <span><strong>{{ a.titulo }}</strong><small>{{ a.sub }}</small></span>
+      </a>
+    }
+  </div>
+}
+
+@if (tiles().length) {
+  <div class="tiles">
+    @for (t of tiles(); track t.titulo) {
+      <p-card>
+        <div class="tile">
+          <i [class]="t.icono"></i>
+          <div><small>{{ t.titulo }}</small><strong>—</strong></div>
+        </div>
+      </p-card>
+    }
+  </div>
+}
