@@ -121,6 +121,18 @@
                   }
                 </tbody>
               </table>
+              <div class="acciones-doc">
+                <button type="button" class="lg-cta lg-cta--suave mini" (click)="editar(s)">
+                  <i class="pi pi-pencil"></i> Editar datos
+                </button>
+                <button
+                  type="button"
+                  class="lg-cta lg-cta--suave mini lg-peligro"
+                  (click)="eliminar(s)"
+                >
+                  <i class="pi pi-trash"></i> Eliminar
+                </button>
+              </div>
               @if (s.notas) {
                 <p class="notas">
                   <span><i class="pi pi-comment"></i> {{ s.notas }}</span>
@@ -141,3 +153,58 @@
 </div>
 
 <app-salida-asistente [(visible)]="asistente" (registrada)="alRegistrar($event)" />
+
+<p-dialog
+  [visible]="!!editando()"
+  (visibleChange)="!$event && editando.set(null)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(32rem, 95vw)' }"
+  [header]="'Editar ' + (editando()?.codigo ?? '')"
+>
+  <div class="lg-form">
+    <div class="full">
+      <label for="es-dest">Destino / cliente</label>
+      <input
+        pInputText
+        id="es-dest"
+        [ngModel]="edDestino()"
+        (ngModelChange)="edDestino.set($event)"
+      />
+    </div>
+    <div>
+      <label for="es-resp">Responsable</label>
+      <input
+        pInputText
+        id="es-resp"
+        [ngModel]="edResponsable()"
+        (ngModelChange)="edResponsable.set($event)"
+      />
+    </div>
+    <div>
+      <label for="es-ref">Referencia</label>
+      <input
+        pInputText
+        id="es-ref"
+        [ngModel]="edReferencia()"
+        (ngModelChange)="edReferencia.set($event)"
+      />
+    </div>
+    <div class="full">
+      <label for="es-notas">Observaciones</label>
+      <input pInputText id="es-notas" [ngModel]="edNotas()" (ngModelChange)="edNotas.set($event)" />
+    </div>
+    <p class="full ayuda" style="margin: 0">
+      <i class="pi pi-info-circle"></i> Las cantidades no se editan: elimina la salida (el stock
+      vuelve) y regístrala de nuevo.
+    </p>
+    <div class="full lg-pie-dialogo">
+      <button type="button" class="lg-cta lg-cta--suave" (click)="editando.set(null)">
+        Cancelar
+      </button>
+      <button type="button" class="lg-cta" [disabled]="guardando()" (click)="guardarEdicion()">
+        <i class="pi pi-check"></i> Guardar
+      </button>
+    </div>
+  </div>
+</p-dialog>

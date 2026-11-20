@@ -2,6 +2,9 @@ import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { usarConfirmacion } from '../../services/confirmar';
 import { SalidaAsistente } from '../../components/salida-asistente/salida-asistente';
 import { MOTIVOS_SALIDA, type MotivoSalida, type Salida } from '../../models/logistica.model';
 import { LogisticaStore } from '../../services/logistica-store.service';
@@ -10,7 +13,15 @@ import { MovimientosService } from '../../services/movimientos.service';
 /** Vista: SALIDA DE PRODUCTO / despachos (historial + asistente). */
 @Component({
   selector: 'app-salidas',
-  imports: [FormsModule, CurrencyPipe, DatePipe, DecimalPipe, SalidaAsistente],
+  imports: [
+    FormsModule,
+    CurrencyPipe,
+    DatePipe,
+    DecimalPipe,
+    DialogModule,
+    InputTextModule,
+    SalidaAsistente,
+  ],
   templateUrl: './salidas.html',
   styleUrl: './documentos.scss',
 })
@@ -31,6 +42,14 @@ export class Salidas implements OnInit {
   protected readonly motivo = signal<MotivoSalida | null>(null);
   protected readonly abierta = signal<string | null>(null);
   protected readonly asistente = signal(false);
+  private readonly confirmar = usarConfirmacion();
+
+  protected readonly editando = signal<Salida | null>(null);
+  protected readonly edDestino = signal('');
+  protected readonly edResponsable = signal('');
+  protected readonly edReferencia = signal('');
+  protected readonly edNotas = signal('');
+  protected readonly guardando = signal(false);
 
   protected readonly lista = computed(() => {
     const t = this.texto().trim().toLowerCase();
@@ -87,6 +106,53 @@ export class Salidas implements OnInit {
   protected alRegistrar(s: Salida) {
     this.abierta.set(s.id);
     void this.cargar();
+  }
+
+  protected editar(s: Salida) {
+    this.edDestino.set(s.destino ?? '');
+    this.edResponsable.set(s.responsable ?? '');
+    this.edReferencia.set(s.referencia ?? '');
+    this.edNotas.set(s.notas ?? '');
+    this.editando.set(s);
+  }
+
+  protected async guardarEdicion() {
+    const s = this.editando();
+    if (!s) return;
+    this.guardando.set(true);
+    try {
+      const r = await this.api.actualizarSalida(s.id, {
+        destino: this.edDestino(),
+        responsable: this.edResponsable(),
+        referencia: this.edReferencia(),
+        notas: this.edNotas(),
+      });
+      this.salidas.update((x) => x.map((y) => (y.id === r.id ? r : y)));
+      this.editando.set(null);
+      this.store.ok('Salida actualizada', r.codigo);
+    } catch (e) {
+      this.store.error('No se pudo guardar', e);
+    } finally {
+      this.guardando.set(false);
+    }
+  }
+
+  /** DELETE real: la BD devuelve el stock al almacén (en transferencias, lo quita del destino). */
+  protected async eliminar(s: Salida) {
+    const ok = await this.confirmar(
+      `¿Eliminar ${s.codigo}?`,
+      s.motivo === 'transferencia'
+        ? `Se borra de la base de datos y el stock regresa de ${s.almacenDestino?.nombre} a ${s.almacen.nombre}.`
+        : `Se borra de la base de datos y los ${s.lineas.length} productos vuelven al stock de ${s.almacen.nombre}.`,
+    );
+    if (!ok) return;
+    try {
+      await this.api.eliminarSalida(s.id);
+      this.store.ok('Salida eliminada', `${s.codigo}: stock devuelto`);
+      await Promise.all([this.cargar(), this.store.recargar()]);
+    } catch (e) {
+      this.store.error('No se pudo eliminar', e);
+    }
   }
 
   protected alternar(id: string) {

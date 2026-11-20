@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import type { EmpresaActual, UsuarioActual } from '../../../common/index.js';
 import {
+  ActualizarLlegadaDto,
+  ActualizarSalidaDto,
   CrearLlegadaDto,
   CrearSalidaDto,
   LlegadaDto,
@@ -36,6 +38,33 @@ export class MovimientosService {
     return LlegadaDto.desde(await this.repo.obtenerLlegada(u.token, e.id, id));
   }
 
+  async actualizarLlegada(
+    u: UsuarioActual,
+    e: EmpresaActual,
+    id: string,
+    dto: ActualizarLlegadaDto,
+  ): Promise<LlegadaDto> {
+    const c: Record<string, unknown> = {};
+    if (dto.guiaRemision !== undefined)
+      c['guia_remision'] = dto.guiaRemision.trim() || null;
+    if (dto.comprobante !== undefined)
+      c['comprobante'] = dto.comprobante.trim() || null;
+    if (dto.notas !== undefined) c['notas'] = dto.notas.trim() || null;
+    if (dto.fecha !== undefined) c['fecha'] = dto.fecha;
+    if (Object.keys(c).length)
+      await this.repo.actualizarLlegada(u.token, e.id, id, c);
+    return LlegadaDto.desde(await this.repo.obtenerLlegada(u.token, e.id, id));
+  }
+
+  /** Elimina de la BD y revierte stock, kardex y avance de la OC. */
+  async eliminarLlegada(
+    u: UsuarioActual,
+    e: EmpresaActual,
+    id: string,
+  ): Promise<void> {
+    await this.repo.eliminarLlegada(u.token, e.id, id);
+  }
+
   async listarSalidas(
     u: UsuarioActual,
     e: EmpresaActual,
@@ -53,6 +82,35 @@ export class MovimientosService {
     sinRepetidos(dto.items);
     const id = await this.repo.registrarSalida(u.token, e.id, dto);
     return SalidaDto.desde(await this.repo.obtenerSalida(u.token, e.id, id));
+  }
+
+  async actualizarSalida(
+    u: UsuarioActual,
+    e: EmpresaActual,
+    id: string,
+    dto: ActualizarSalidaDto,
+  ): Promise<SalidaDto> {
+    const c: Record<string, unknown> = {};
+    for (const k of [
+      'destino',
+      'responsable',
+      'referencia',
+      'notas',
+    ] as const) {
+      if (dto[k] !== undefined) c[k] = dto[k].trim() || null;
+    }
+    if (Object.keys(c).length)
+      await this.repo.actualizarSalida(u.token, e.id, id, c);
+    return SalidaDto.desde(await this.repo.obtenerSalida(u.token, e.id, id));
+  }
+
+  /** Elimina de la BD y devuelve el stock al almacén (en transferencias, lo quita del destino). */
+  async eliminarSalida(
+    u: UsuarioActual,
+    e: EmpresaActual,
+    id: string,
+  ): Promise<void> {
+    await this.repo.eliminarSalida(u.token, e.id, id);
   }
 }
 

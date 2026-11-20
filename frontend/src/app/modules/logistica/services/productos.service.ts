@@ -24,6 +24,9 @@ export class ProductosService {
   actualizar(id: string, datos: Partial<GuardarProducto>): Promise<Producto> {
     return this.api.patch(`/logistica/productos/${id}`, datos);
   }
+  eliminar(id: string): Promise<void> {
+    return this.api.delete(`/logistica/productos/${id}`);
+  }
   kardex(id: string): Promise<Movimiento[]> {
     return this.api.get(`/logistica/productos/${id}/kardex`);
   }

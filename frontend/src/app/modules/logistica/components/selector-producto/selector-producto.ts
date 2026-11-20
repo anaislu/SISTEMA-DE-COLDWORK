@@ -26,8 +26,7 @@ import { LogisticaStore } from '../../services/logistica-store.service';
           <div class="op">
             <i [class]="info(o.p).icono" [style.color]="info(o.p).color"></i>
             <div>
-              <strong>{{ o.p.nombre }}</strong
-              ><small>{{ o.p.sku }}</small>
+              <strong>{{ o.p.nombre }}</strong><small>{{ o.p.sku }}</small>
             </div>
             @if (almacenId()) {
               <span [class.cero]="o.stock <= 0">{{ o.stock }} {{ o.p.unidad }}</span>

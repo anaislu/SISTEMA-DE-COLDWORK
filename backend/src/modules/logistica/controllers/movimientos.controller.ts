@@ -1,8 +1,19 @@
-import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiHeader,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -15,6 +26,8 @@ import {
   type UsuarioActual,
 } from '../../../common/index.js';
 import {
+  ActualizarLlegadaDto,
+  ActualizarSalidaDto,
   CrearLlegadaDto,
   CrearSalidaDto,
   LlegadaDto,
@@ -69,5 +82,52 @@ export class MovimientosController {
     @Body() dto: CrearSalidaDto,
   ) {
     return this.movimientos.registrarSalida(u, e, dto);
+  }
+
+  /** Corrige guía, comprobante, notas o fecha. Las cantidades no se editan: se elimina y se registra otra vez. */
+  @Patch('llegadas/:id')
+  @ApiOkResponse({ type: LlegadaDto })
+  actualizarLlegada(
+    @Usuario() u: UsuarioActual,
+    @Empresa() e: EmpresaActual,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ActualizarLlegadaDto,
+  ) {
+    return this.movimientos.actualizarLlegada(u, e, id, dto);
+  }
+
+  /** Elimina la llegada de la BD revirtiendo stock, kardex y avance de la OC. */
+  @Delete('llegadas/:id')
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  eliminarLlegada(
+    @Usuario() u: UsuarioActual,
+    @Empresa() e: EmpresaActual,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.movimientos.eliminarLlegada(u, e, id);
+  }
+
+  @Patch('salidas/:id')
+  @ApiOkResponse({ type: SalidaDto })
+  actualizarSalida(
+    @Usuario() u: UsuarioActual,
+    @Empresa() e: EmpresaActual,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ActualizarSalidaDto,
+  ) {
+    return this.movimientos.actualizarSalida(u, e, id, dto);
+  }
+
+  /** Elimina la salida de la BD devolviendo el stock. */
+  @Delete('salidas/:id')
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  eliminarSalida(
+    @Usuario() u: UsuarioActual,
+    @Empresa() e: EmpresaActual,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.movimientos.eliminarSalida(u, e, id);
   }
 }

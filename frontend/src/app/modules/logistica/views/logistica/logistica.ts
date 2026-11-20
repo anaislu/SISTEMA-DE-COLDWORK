@@ -8,6 +8,8 @@ import {
   RouterLinkActive,
   RouterOutlet,
 } from '@angular/router';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { filter, map, startWith } from 'rxjs';
 import { EmpresaActualService } from '../../../../core/empresa/services/empresa-actual.service';
 import { nivelStock } from '../../models/logistica.model';
@@ -23,7 +25,9 @@ interface Pestana {
 /** Contenedor del módulo: cabecera aurora, pestañas y la vista hija. */
 @Component({
   selector: 'app-logistica',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ConfirmDialogModule],
+  // Un solo diálogo de confirmación para todo el módulo (ver services/confirmar.ts)
+  providers: [ConfirmationService],
   templateUrl: './logistica.html',
 })
 export class Logistica {

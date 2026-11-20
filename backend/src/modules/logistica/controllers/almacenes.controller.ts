@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -12,6 +13,7 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiHeader,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -68,5 +70,17 @@ export class AlmacenesController {
     @Body() dto: ActualizarAlmacenDto,
   ) {
     return this.almacenes.actualizar(u, e, id, dto);
+  }
+
+  /** Elimina el almacén de la BD (solo si no tiene stock ni historial). */
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  eliminar(
+    @Usuario() u: UsuarioActual,
+    @Empresa() e: EmpresaActual,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.almacenes.eliminar(u, e, id);
   }
 }

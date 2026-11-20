@@ -2,6 +2,10 @@ import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { aISO, deISO } from '../../models/plazos';
+import { usarConfirmacion } from '../../services/confirmar';
 import { LlegadaAsistente } from '../../components/llegada-asistente/llegada-asistente';
 import type { Llegada, OrdenCompra } from '../../models/logistica.model';
 import { LogisticaStore } from '../../services/logistica-store.service';
@@ -11,7 +15,15 @@ import { OrdenesCompraService } from '../../services/ordenes-compra.service';
 /** Vista: LLEGADA DE PRODUCTO (historial + asistente de registro). */
 @Component({
   selector: 'app-llegadas',
-  imports: [FormsModule, CurrencyPipe, DatePipe, DecimalPipe, LlegadaAsistente],
+  imports: [
+    FormsModule,
+    CurrencyPipe,
+    DatePipe,
+    DecimalPipe,
+    DialogModule,
+    InputTextModule,
+    LlegadaAsistente,
+  ],
   templateUrl: './llegadas.html',
   styleUrl: '../salidas/documentos.scss',
 })
@@ -29,6 +41,15 @@ export class Llegadas implements OnInit {
   protected readonly abierta = signal<string | null>(null);
   protected readonly asistente = signal(false);
   protected readonly ordenInicial = signal<string | null>(null);
+  private readonly confirmar = usarConfirmacion();
+
+  // Editar datos del documento
+  protected readonly editando = signal<Llegada | null>(null);
+  protected readonly edGuia = signal('');
+  protected readonly edComprobante = signal('');
+  protected readonly edNotas = signal('');
+  protected readonly edFecha = signal('');
+  protected readonly guardando = signal(false);
 
   protected readonly lista = computed(() => {
     const t = this.texto().trim().toLowerCase();
@@ -84,6 +105,56 @@ export class Llegadas implements OnInit {
   protected alRegistrar(l: Llegada) {
     this.abierta.set(l.id);
     void this.cargar();
+  }
+
+  protected editar(l: Llegada) {
+    this.edGuia.set(l.guiaRemision ?? '');
+    this.edComprobante.set(l.comprobante ?? '');
+    this.edNotas.set(l.notas ?? '');
+    this.edFecha.set(aISO(new Date(l.fecha)));
+    this.editando.set(l);
+  }
+
+  protected async guardarEdicion() {
+    const l = this.editando();
+    if (!l) return;
+    this.guardando.set(true);
+    try {
+      const cambioFecha = this.edFecha() !== aISO(new Date(l.fecha));
+      const r = await this.api.actualizarLlegada(l.id, {
+        guiaRemision: this.edGuia(),
+        comprobante: this.edComprobante(),
+        notas: this.edNotas(),
+        ...(cambioFecha
+          ? { fecha: new Date(deISO(this.edFecha()).setHours(12)).toISOString() }
+          : {}),
+      });
+      this.llegadas.update((x) => x.map((y) => (y.id === r.id ? r : y)));
+      this.editando.set(null);
+      this.store.ok('Llegada actualizada', r.codigo);
+    } catch (e) {
+      this.store.error('No se pudo guardar', e);
+    } finally {
+      this.guardando.set(false);
+    }
+  }
+
+  /** DELETE real: la BD resta el stock que entró, borra su kardex y devuelve el avance de la OC. */
+  protected async eliminar(l: Llegada) {
+    const ok = await this.confirmar(
+      `¿Eliminar ${l.codigo}?`,
+      `Se borra de la base de datos y se RESTA del stock lo que entró (${l.lineas.length} productos)` +
+        (l.orden ? `; ${l.orden.codigo} vuelve a quedar pendiente.` : '.') +
+        ' Si parte de ese stock ya salió, no se podrá eliminar.',
+    );
+    if (!ok) return;
+    try {
+      await this.api.eliminarLlegada(l.id);
+      this.store.ok('Llegada eliminada', `${l.codigo}: stock revertido`);
+      await Promise.all([this.cargar(), this.store.recargar()]);
+    } catch (e) {
+      this.store.error('No se pudo eliminar', e);
+    }
   }
 
   protected alternar(id: string) {

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { eliminarConMensaje } from './eliminar.util.js';
 import type { EmpresaActual, UsuarioActual } from '../../../common/index.js';
 import {
   ActualizarAlmacenDto,
@@ -41,6 +42,18 @@ export class AlmacenesService {
   ): Promise<AlmacenDto> {
     return AlmacenDto.desde(
       await this.repo.crear(u.token, { empresa_id: e.id, ...aFila(dto) }),
+    );
+  }
+
+  async eliminar(
+    u: UsuarioActual,
+    e: EmpresaActual,
+    id: string,
+  ): Promise<void> {
+    await eliminarConMensaje(
+      () => this.repo.eliminar(u.token, e.id, id),
+      'El almacén',
+      'Este almacén tiene stock, movimientos u órdenes. Transfiere su stock y desactívalo en lugar de eliminarlo.',
     );
   }
 

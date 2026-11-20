@@ -5,6 +5,7 @@ import {
   SELECT_ORDEN_COMPRA,
   type EstadoOc,
   type FilaOrdenCompra,
+  type CambiosOrdenCompra,
 } from '../entities/index.js';
 
 /** Acceso a datos de órdenes de compra. Las escrituras van por RPC (atómicas en SQL). */
@@ -60,13 +61,61 @@ export class OrdenesCompraRepository {
     estado: EstadoOc,
   ): Promise<void> {
     datosOError(
+      await this.supabase.paraUsuario(token).rpc('cambiar_estado_oc', {
+        p_empresa: empresaId,
+        p_orden: id,
+        p_estado: estado,
+      }),
+    );
+  }
+
+  /** DELETE real. Devuelve false si no existía. Si tiene historial, la FK lanza 23503 (→ 409). */
+  async eliminar(
+    token: string,
+    empresaId: string,
+    id: string,
+  ): Promise<boolean> {
+    const r = await this.supabase
+      .paraUsuario(token)
+      .from('ordenes_compra')
+      .delete()
+      .eq('empresa_id', empresaId)
+      .eq('id', id)
+      .select('id');
+    return ((datosOError(r) as { id: string }[] | null) ?? []).length > 0;
+  }
+
+  async actualizar(
+    token: string,
+    empresaId: string,
+    id: string,
+    cambios: CambiosOrdenCompra,
+  ): Promise<void> {
+    datosOError(
       await this.supabase
         .paraUsuario(token)
-        .rpc('cambiar_estado_oc', {
-          p_empresa: empresaId,
-          p_orden: id,
-          p_estado: estado,
-        }),
+        .from('ordenes_compra')
+        .update(cambios)
+        .eq('empresa_id', empresaId)
+        .eq('id', id)
+        .select('id')
+        .single(),
+    );
+  }
+
+  /** Solo en borrador (lo valida la función SQL). */
+  async reemplazarItems(
+    token: string,
+    empresaId: string,
+    id: string,
+    items: unknown,
+  ): Promise<void> {
+    datosOError(
+      await this.supabase.paraUsuario(token).rpc('reemplazar_items_oc', {
+        p_empresa: empresaId,
+        p_orden: id,
+        p_items: items,
+      }),
     );
   }
 }

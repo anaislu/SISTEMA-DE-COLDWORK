@@ -43,8 +43,7 @@
         <ul class="top">
           @for (x of top().get(a.id); track x.nombre) {
             <li>
-              <span>{{ x.nombre }}</span
-              ><b>{{ x.cantidad | number: '1.0-2' }} {{ x.unidad }}</b>
+              <span>{{ x.nombre }}</span><b>{{ x.cantidad | number: '1.0-2' }} {{ x.unidad }}</b>
             </li>
           }
         </ul>

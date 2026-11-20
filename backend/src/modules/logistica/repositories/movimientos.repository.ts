@@ -96,4 +96,66 @@ export class MovimientosRepository {
         .rpc('registrar_salida', { p_empresa: empresaId, p_datos: datos }),
     ) as string;
   }
+
+  async actualizarLlegada(
+    token: string,
+    empresaId: string,
+    id: string,
+    cambios: Record<string, unknown>,
+  ): Promise<void> {
+    datosOError(
+      await this.supabase
+        .paraUsuario(token)
+        .from('llegadas')
+        .update(cambios)
+        .eq('empresa_id', empresaId)
+        .eq('id', id)
+        .select('id')
+        .single(),
+    );
+  }
+
+  /** Revierte stock, kardex y avance de la OC, y borra la llegada (todo en SQL). */
+  async eliminarLlegada(
+    token: string,
+    empresaId: string,
+    id: string,
+  ): Promise<void> {
+    datosOError(
+      await this.supabase
+        .paraUsuario(token)
+        .rpc('eliminar_llegada', { p_empresa: empresaId, p_llegada: id }),
+    );
+  }
+
+  async actualizarSalida(
+    token: string,
+    empresaId: string,
+    id: string,
+    cambios: Record<string, unknown>,
+  ): Promise<void> {
+    datosOError(
+      await this.supabase
+        .paraUsuario(token)
+        .from('salidas')
+        .update(cambios)
+        .eq('empresa_id', empresaId)
+        .eq('id', id)
+        .select('id')
+        .single(),
+    );
+  }
+
+  /** Devuelve el stock al almacén y borra la salida (todo en SQL). */
+  async eliminarSalida(
+    token: string,
+    empresaId: string,
+    id: string,
+  ): Promise<void> {
+    datosOError(
+      await this.supabase
+        .paraUsuario(token)
+        .rpc('eliminar_salida', { p_empresa: empresaId, p_salida: id }),
+    );
+  }
 }

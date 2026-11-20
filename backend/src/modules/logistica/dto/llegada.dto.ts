@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
+  IsDateString,
   IsArray,
   IsNumber,
   IsOptional,
@@ -56,6 +57,26 @@ export class CrearLlegadaDto {
   @ValidateNested({ each: true })
   @Type(() => ItemLlegadaDto)
   items!: ItemLlegadaDto[];
+}
+
+/** Body de PATCH /api/v1/logistica/llegadas/:id — solo datos del documento (las cantidades no se editan: se elimina y se registra de nuevo). */
+export class ActualizarLlegadaDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  guiaRemision?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  comprobante?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  notas?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() fecha?: string;
 }
 
 export class LineaDocumentoDto {
