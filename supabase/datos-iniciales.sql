@@ -14,14 +14,20 @@
 
 -- RUC de tu empresa tal como está en la tabla empresas
 -- (verifícalo con:  select id, ruc, razon_social from empresas;)
+-- Si tu empresa no tiene RUC cargado y es la única, se usa igual.
 drop table if exists _empresa;
 create temporary table _empresa as
   select id from public.empresas where ruc = '20608689941';
 
+-- Si no hay ninguna con ese RUC pero en la base hay UNA sola empresa, se usa esa
+insert into _empresa
+  select id from public.empresas
+  where not exists (select 1 from _empresa) and (select count(*) from public.empresas) = 1;
+
 do $$
 begin
-  if not exists (select 1 from _empresa) then
-    raise exception 'No encontré la empresa con ese RUC. Revisa: select id, ruc, razon_social from empresas;';
+  if (select count(*) from _empresa) <> 1 then
+    raise exception 'No pude elegir la empresa. Mira: select id, ruc, razon_social from empresas;  y pon su RUC en la línea 20 de este archivo (o cárgalo con: update empresas set ruc = ''20608689941'' where id = ''...'';)';
   end if;
 end $$;
 
