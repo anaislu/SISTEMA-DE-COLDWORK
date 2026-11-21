@@ -25,10 +25,22 @@
   }
   <span class="espacio"></span>
   <span class="encamino"
-    >En camino: <b>{{ enCamino() | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</b></span
-  >
-  <button type="button" class="lg-cta" (click)="nueva()">
+    >En camino:
+    @if (enCamino().PEN) {
+      <b>S/ {{ enCamino().PEN | number: '1.0-0' }}</b>
+    }
+    @if (enCamino().USD) {
+      <b>US$ {{ enCamino().USD | number: '1.0-0' }}</b>
+    }
+    @if (!enCamino().PEN && !enCamino().USD) {
+      <b>—</b>
+    }
+  </span>
+  <button type="button" class="lg-cta lg-cta--suave" (click)="nueva()">
     <i class="pi pi-plus"></i> Nueva orden
+  </button>
+  <button type="button" class="lg-cta" (click)="importar.set(true)">
+    <i class="pi pi-file-import"></i> Importar cotización
   </button>
 </div>
 
@@ -107,9 +119,7 @@
               }
               <div class="meta">
                 <span>{{ o.plazoTexto || 'Sin plazo' }}</span>
-                <span class="monto">{{
-                  o.total | currency: 'PEN' : 'symbol-narrow' : '1.0-0'
-                }}</span>
+                <span class="monto">{{ simbolo[o.moneda] }} {{ o.total | number: '1.0-0' }}</span>
               </div>
             </article>
           } @empty {
@@ -231,6 +241,22 @@
         <div>
           <small>Llega a</small><b>{{ o.almacen.nombre }}</b>
         </div>
+        <div>
+          <small>Moneda</small><b>{{ o.moneda === 'USD' ? 'Dólares (US$)' : 'Soles (S/)' }}</b>
+        </div>
+        <div>
+          <small>Condiciones</small><b>{{ o.condicionesPago || '—' }}</b>
+        </div>
+        @if (o.cotizacionRef) {
+          <div>
+            <small>Cotización</small><b>{{ o.cotizacionRef }}</b>
+          </div>
+        }
+        @if (o.solicitadoPor) {
+          <div>
+            <small>Solicitado por</small><b>{{ o.solicitadoPor }}</b>
+          </div>
+        }
       </div>
 
       <h4>Productos</h4>
@@ -238,8 +264,7 @@
         <div class="item">
           <div class="nom">
             <b>{{ i.nombre }}</b><span class="lg-mono"
-              >{{ i.sku }} ·
-              {{ i.costoUnitario | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</span
+              >{{ i.sku }} · {{ simbolo[o.moneda] }} {{ i.costoUnitario | number: '1.2-2' }}</span
             >
           </div>
           <div class="prog">
@@ -251,22 +276,21 @@
               <span [style.width.%]="(i.cantidadRecibida / i.cantidad) * 100"></span>
             </div>
           </div>
-          <b class="sub">{{ i.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</b>
+          <b class="sub">{{ simbolo[o.moneda] }} {{ i.subtotal | number: '1.2-2' }}</b>
         </div>
       }
 
       <div class="lg-ticket" style="margin-top: 1rem">
         <div class="fila">
           <span>Valor de compra</span
-          ><strong>{{ o.subtotal | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+          ><strong>{{ simbolo[o.moneda] }} {{ o.subtotal | number: '1.2-2' }}</strong>
         </div>
         <div class="fila">
           <span>IGV 18 %</span
-          ><strong>{{ o.igv | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+          ><strong>{{ simbolo[o.moneda] }} {{ o.igv | number: '1.2-2' }}</strong>
         </div>
         <div class="fila total">
-          <span>Total</span
-          ><strong>{{ o.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+          <span>Total</span><strong>{{ simbolo[o.moneda] }} {{ o.total | number: '1.2-2' }}</strong>
         </div>
       </div>
       @if (o.notas) {
@@ -274,6 +298,9 @@
       }
 
       <div class="acciones">
+        <button type="button" class="lg-cta" (click)="pdfVisible.set(true)">
+          <i class="pi pi-file-pdf"></i> Ver PDF
+        </button>
         @if (o.estado === 'borrador') {
           <button type="button" class="lg-cta" [disabled]="trabajando()" (click)="enviar(o)">
             <i class="pi pi-send"></i> Enviar al proveedor
@@ -315,6 +342,8 @@
   }
 </p-drawer>
 
+<app-importar-cotizacion [(visible)]="importar" (guardada)="alGuardar($event)" />
+<app-pdf-orden [(visible)]="pdfVisible" [orden]="detalle()" />
 <app-orden-dialogo
   [(visible)]="dialogo"
   [orden]="editando()"

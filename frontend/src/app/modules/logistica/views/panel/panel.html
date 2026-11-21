@@ -29,8 +29,17 @@
     <small>Órdenes por recibir</small>
     @if (resumen(); as r) {
       <strong>{{ r.ocPendientes }}</strong>
-      <span class="pie"
-        >{{ r.ocPorRecibirValor | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }} en camino</span
+      <span class="pie">
+        @if (enCamino().PEN) {
+          S/ {{ enCamino().PEN | number: '1.0-0' }}
+        }
+        @if (enCamino().PEN && enCamino().USD) {
+          ·
+        }
+        @if (enCamino().USD) {
+          US$ {{ enCamino().USD | number: '1.0-0' }}
+        }
+        en camino</span
       >
     } @else {
       <div class="lg-skel" style="height: 1.8rem; margin-top: 0.4rem; width: 40%"></div>

@@ -1,9 +1,20 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, computed, effect, inject, input, model, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  model,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { desdeBase } from '../../../../core/utils/montos';
 import type { OrdenCompra, Producto } from '../../models/logistica.model';
 import { colorCliente, hoyISO, seguimiento } from '../../models/plazos';
@@ -32,6 +43,7 @@ interface LineaOc {
     DialogModule,
     InputNumberModule,
     SelectModule,
+    SelectButtonModule,
     SelectorProducto,
     PlazoEntrega,
   ],
@@ -59,6 +71,11 @@ export class OrdenDialogo {
   protected readonly cliente = signal('');
   protected readonly compromiso = signal('');
   protected readonly notas = signal('');
+  protected readonly moneda = signal<'PEN' | 'USD'>('PEN');
+  protected readonly monedas = [
+    { t: 'S/ Soles', v: 'PEN' },
+    { t: 'US$ Dólares', v: 'USD' },
+  ];
   protected readonly lineas = signal<LineaOc[]>([]);
   protected readonly guardando = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -93,50 +110,58 @@ export class OrdenDialogo {
   constructor() {
     effect(() => {
       if (!this.visible()) return;
-      const o = this.orden();
-      const porId = this.store.productoPorId();
-      this.error.set(null);
-      if (o) {
-        this.proveedorId.set(o.proveedor.id);
-        this.almacenId.set(o.almacen.id);
-        const ini = {
-          plazoTexto: o.plazoTexto ?? '',
-          entregaDesde: o.entregaDesde,
-          entregaHasta: o.entregaHasta,
-        };
-        this.plazoInicial.set(ini);
-        this.plazo.set(ini);
-        this.cliente.set(o.cliente ?? '');
-        this.compromiso.set(o.compromisoCliente ?? '');
-        this.notas.set(o.notas ?? '');
-        this.lineas.set(
-          o.items
-            .map((i) => ({
-              producto: porId.get(i.productoId)!,
-              cantidad: i.cantidad,
-              costo: i.costoUnitario,
-            }))
-            .filter((l) => !!l.producto),
-        );
-      } else {
-        this.proveedorId.set(null);
-        this.almacenId.set(
-          this.store.almacenesActivos().find((a) => a.tipo === 'principal')?.id ?? null,
-        );
-        this.plazoInicial.set(null);
-        this.plazo.set({ plazoTexto: '', entregaDesde: null, entregaHasta: null });
-        this.cliente.set('');
-        this.compromiso.set('');
-        this.notas.set('');
-        this.lineas.set(
-          this.sugeridos().map((p) => ({
-            producto: p,
-            // Sugerencia: lo que falta para llegar a 2 veces el mínimo
-            cantidad: Math.max(1, Math.ceil(p.stockMinimo * 2 - p.stockTotal)),
-            costo: p.costoPromedio,
-          })),
-        );
-      }
+      // Solo se reinicia al ABRIR (o al cambiar lo que se abre). Lo demás se lee sin
+      // suscribirse: si no, recargar los catálogos a mitad de un guardado borraba el formulario.
+      this.orden();
+      this.sugeridos();
+      untracked(() => {
+        const o = this.orden();
+        const porId = this.store.productoPorId();
+        this.error.set(null);
+        if (o) {
+          this.proveedorId.set(o.proveedor.id);
+          this.almacenId.set(o.almacen.id);
+          const ini = {
+            plazoTexto: o.plazoTexto ?? '',
+            entregaDesde: o.entregaDesde,
+            entregaHasta: o.entregaHasta,
+          };
+          this.plazoInicial.set(ini);
+          this.plazo.set(ini);
+          this.cliente.set(o.cliente ?? '');
+          this.compromiso.set(o.compromisoCliente ?? '');
+          this.notas.set(o.notas ?? '');
+          this.moneda.set(o.moneda);
+          this.lineas.set(
+            o.items
+              .map((i) => ({
+                producto: porId.get(i.productoId)!,
+                cantidad: i.cantidad,
+                costo: i.costoUnitario,
+              }))
+              .filter((l) => !!l.producto),
+          );
+        } else {
+          this.proveedorId.set(null);
+          this.almacenId.set(
+            this.store.almacenesActivos().find((a) => a.tipo === 'principal')?.id ?? null,
+          );
+          this.plazoInicial.set(null);
+          this.plazo.set({ plazoTexto: '', entregaDesde: null, entregaHasta: null });
+          this.cliente.set('');
+          this.compromiso.set('');
+          this.notas.set('');
+          this.moneda.set('PEN');
+          this.lineas.set(
+            this.sugeridos().map((p) => ({
+              producto: p,
+              // Sugerencia: lo que falta para llegar a 2 veces el mínimo
+              cantidad: Math.max(1, Math.ceil(p.stockMinimo * 2 - p.stockTotal)),
+              costo: p.costoPromedio,
+            })),
+          );
+        }
+      });
     });
   }
 
@@ -166,6 +191,7 @@ export class OrdenDialogo {
       cliente: this.cliente().trim(),
       compromisoCliente: this.compromiso() || null,
       notas: this.notas().trim(),
+      ...(this.editaTodo() ? { moneda: this.moneda() } : {}),
     };
     const items = this.lineas().map((l) => ({
       productoId: l.producto.id,

@@ -6,6 +6,7 @@
 export type TipoProducto = 'repuesto' | 'gas_refrigerante' | 'herramienta' | 'insumo' | 'equipo';
 export type TipoAlmacen = 'principal' | 'movil' | 'obra';
 export type EstadoOc = 'borrador' | 'enviada' | 'parcial' | 'recibida' | 'anulada';
+export type Moneda = 'PEN' | 'USD';
 export type MotivoSalida =
   'servicio_tecnico' | 'venta' | 'consumo_interno' | 'merma' | 'transferencia';
 
@@ -119,7 +120,14 @@ export interface OrdenCompra {
   compromisoCliente: string | null;
   entregadoCliente: string | null;
   notas: string | null;
-  proveedor: { id: string; razonSocial: string; numeroDocumento: string };
+  moneda: Moneda;
+  condicionesPago: string | null;
+  lugarEntrega: string | null;
+  atencion: string | null;
+  solicitadoPor: string | null;
+  /** N° de la cotización del proveedor de la que salió ("HC 1724"). */
+  cotizacionRef: string | null;
+  proveedor: { id: string; razonSocial: string; numeroDocumento: string; direccion: string | null };
   almacen: { id: string; nombre: string };
   items: ItemOrden[];
   subtotal: number;
@@ -135,6 +143,12 @@ export interface PlazoOrden {
   cliente?: string;
   compromisoCliente?: string | null;
   notas?: string;
+  moneda?: Moneda;
+  condicionesPago?: string;
+  lugarEntrega?: string;
+  atencion?: string;
+  solicitadoPor?: string;
+  cotizacionRef?: string;
 }
 
 export interface CrearOrdenCompra extends PlazoOrden {
@@ -167,6 +181,8 @@ export interface Llegada {
   almacen: { id: string; nombre: string };
   proveedor: { id: string; razonSocial: string } | null;
   orden: { id: string; codigo: string } | null;
+  moneda: Moneda;
+  tipoCambio: number | null;
   guiaRemision: string | null;
   comprobante: string | null;
   notas: string | null;
@@ -183,6 +199,9 @@ export interface CrearLlegada {
   notas?: string;
   /** Cuándo llegó de verdad (ISO). Por defecto, ahora. */
   fecha?: string;
+  /** Moneda de la OC. Los costoUnitario van SIEMPRE en soles (ya convertidos). */
+  moneda?: Moneda;
+  tipoCambio?: number;
   items: { productoId: string; cantidad: number; costoUnitario: number }[];
 }
 
@@ -326,3 +345,5 @@ export function nivelStock(cantidad: number, minimo: number): NivelStock {
   if (cantidad <= minimo * 1.5) return 'bajo';
   return 'ok';
 }
+
+export const SIMBOLO: Record<Moneda, string> = { PEN: 'S/', USD: 'US$' };

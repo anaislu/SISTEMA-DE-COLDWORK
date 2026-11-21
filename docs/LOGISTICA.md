@@ -2,11 +2,12 @@
 
 ## Cómo crear las tablas en Supabase
 
-Son **tres archivos** y se ejecutan **en este orden** (una sola vez cada uno):
+Son **cuatro archivos** y se ejecutan **en este orden** (una sola vez cada uno):
 
 1. `supabase/migrations/20261120000001_logistica.sql` → tablas, RLS y funciones de stock.
 2. `supabase/migrations/20261121000001_logistica_plazos_crud.sql` → plazos de entrega, seguimiento al cliente y eliminar/editar.
 3. `supabase/migrations/20261122000001_accesos_solo_dueno.sql` → solo el dueño (CEO) da accesos.
+4. `supabase/migrations/20261123000001_oc_formato_y_moneda.sql` → orden de compra en formato COLD WORK, moneda (S/ o US$) y tipo de cambio en las llegadas.
 
 Supabase → **SQL Editor** → pega el archivo completo → **Run**.
 (No lo crees a mano tabla por tabla: también crea las reglas RLS y las funciones que mueven el stock.)
@@ -66,6 +67,29 @@ Todas llevan `empresa_id` y RLS: solo las ve quien tiene el área **Logística**
 Las cantidades de una llegada o salida no se editan: se elimina y se registra de nuevo, así el kardex siempre cuadra.
 
 `stock` y `movimientos` **no se editan a mano**. Si quieres cargar un saldo inicial, hazlo como una "Llegada → Compra directa" desde la app, así queda en el kardex.
+
+## Importar una cotización → orden de compra en PDF
+
+Órdenes de compra → **Importar cotización**:
+
+1. **Cargar**: suelta el PDF que manda el proveedor (WhatsApp o correo) o pega el texto del chat.
+   La app lee proveedor y RUC, n° de cotización, moneda, forma de pago y cada producto (código, cantidad, unidad, marca y precio).
+   Avisa si algo no cuadra (cantidad × precio ≠ total, o la suma ≠ subtotal).
+2. **Revisar y editar**: desmarca lo que no se compra, cambia cantidades y precios, agrega filas. Cada producto se empareja con el catálogo
+   (mismo código o nombre parecido) o se marca para crearlo. Si el proveedor no existe, se registra con su RUC.
+3. **Vista previa del PDF** y **Aprobar, guardar y descargar**: se crean los productos y el proveedor que falten, se guarda la orden
+   con su número (`2026-0219`) y se descarga el PDF con el formato de COLD WORK.
+
+Cualquier orden guardada tiene **Ver PDF** en su detalle.
+
+- **Logo**: guarda el logo oficial como `frontend/public/documentos/logo-coldwork.png`; si no está, el PDF dibuja "COLD WORK".
+- **Dirección, celular, gerente, notas del pie**: `frontend/src/app/modules/logistica/config/documento-oc.ts`.
+- **Fotos o escaneos**: el lector necesita un PDF con texto (como el de Frío). Una foto no tiene texto: pega el mensaje o escribe las filas.
+
+### Dólares y tipo de cambio
+
+Una orden puede estar en **US$**. Al registrar su llegada se pide el **tipo de cambio del día**: el costo entra al inventario en soles
+(precio × tipo de cambio), así el costo promedio nunca mezcla monedas. La llegada guarda la moneda y el tipo de cambio usado.
 
 ## Orden recomendado para cargar datos
 

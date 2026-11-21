@@ -41,6 +41,19 @@
       />
     </div>
 
+    <div class="full">
+      <span class="lbl">Moneda</span>
+      <p-selectbutton
+        [options]="monedas"
+        optionLabel="t"
+        optionValue="v"
+        [allowEmpty]="false"
+        [disabled]="!editaTodo()"
+        [ngModel]="moneda()"
+        (ngModelChange)="moneda.set($event)"
+        ariaLabel="Moneda"
+      />
+    </div>
     <fieldset class="full bloque">
       <legend>
         <i class="pi pi-truck"></i> ¿Cuándo llega?
@@ -131,7 +144,7 @@
             (ngModelChange)="cambiar(i, 'costo', $event)"
             [min]="0"
             mode="currency"
-            currency="PEN"
+            [currency]="moneda()"
             locale="es-PE"
             [maxFractionDigits]="4"
             inputStyleClass="w-full"
@@ -156,11 +169,11 @@
     <div class="full lg-ticket">
       <div class="fila">
         <span>Valor de compra</span
-        ><strong>{{ totales().base | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        ><strong>{{ totales().base | currency: moneda() : 'symbol-narrow' : '1.2-2' }}</strong>
       </div>
       <div class="fila">
         <span>IGV 18 %</span
-        ><strong>{{ totales().igv | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        ><strong>{{ totales().igv | currency: moneda() : 'symbol-narrow' : '1.2-2' }}</strong>
       </div>
       @if (plazo().entregaHasta) {
         <div class="fila">
@@ -169,7 +182,7 @@
       }
       <div class="fila total">
         <span>Total</span
-        ><strong>{{ totales().total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+        ><strong>{{ totales().total | currency: moneda() : 'symbol-narrow' : '1.2-2' }}</strong>
       </div>
     </div>
 
