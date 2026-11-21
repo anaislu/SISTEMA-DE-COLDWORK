@@ -1,9 +1,13 @@
-# Créditos de íconos
+# Créditos de stickers y emojis
 
-Los emojis ilustrados de COLDWORK (`copo`, `saludo`, `correo`, `edificio`) son **SVG propios** del proyecto, guardados en `frontend/public/emojis/`. Los sirve la misma app: cargan siempre (aunque la red del cliente bloquee sitios externos), se ven nítidos al imprimir y **no piden atribución**.
+Los stickers/emojis se cargan **por link** (`frontend/src/app/shared/components/emoji/iconos.ts`). Cada uno prueba en orden:
 
-Antes se cargaban por link desde Flaticon; se cambió porque si ese servidor fallaba o estaba bloqueado, el emoji aparecía roto.
+1. **Noto Emoji animado** de Google (`fonts.gstatic.com`) — licencia Apache 2.0 / OFL.
+2. **Twemoji** (`cdn.jsdelivr.net/gh/jdecked/twemoji`) — gráficos con licencia **CC BY 4.0**, que pide atribución: por eso el login muestra "Emojis: Noto (Google) y Twemoji (CC BY 4.0)".
+3. **Copia propia** en `frontend/public/emojis/<nombre>.svg` (dibujos del proyecto), por si la red del cliente bloquea sitios externos. Así nunca se ve un ícono roto.
 
-Para agregar uno nuevo: guarda el SVG en `frontend/public/emojis/<nombre>.svg` y agrégalo en `frontend/src/app/shared/components/emoji/iconos.ts`.
+También se puede usar el link de cualquier página: `<app-emoji url="https://…/sticker.gif" nombre="estrella" />` (si ese link falla, cae al catálogo). Antes de usar una imagen de otra página, revisa que su licencia permita usarla.
 
-Los íconos de interfaz (botones y menú) son **PrimeIcons**, que vienen con PrimeNG y tienen licencia MIT.
+El **logo** oficial está en `frontend/public/documentos/logo-coldwork.png` (lo usan el menú, el login y el PDF de la orden de compra).
+
+Los íconos de interfaz (botones y menú) son **PrimeIcons** (MIT).

@@ -83,7 +83,8 @@ export async function crearPdfOrden(
   // ---------- Encabezado ----------
   const logo = await cargarLogo();
   if (logo) {
-    doc.addImage(logo, 'PNG', M, 9, 52, 16, undefined, 'FAST');
+    // 322×76 px → 58 × 13.7 mm, misma proporción
+    doc.addImage(logo, 'PNG', M, 9, 58, 13.7, undefined, 'FAST');
   } else {
     dibujarCopo(doc, M + 6.5, 16.5, 5.2);
     doc
