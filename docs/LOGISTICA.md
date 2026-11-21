@@ -1,5 +1,27 @@
 # Módulo Almacén y logística
 
+## Paso a paso para conectarlo a la base de datos
+
+Todo se hace en **Supabase → SQL Editor** (pega el archivo completo → **Run**).
+
+1. **¿Qué ya tienes?** Ejecuta `supabase/estado-migraciones.sql`. Muestra una columna por migración con `true` (ya está) o `false` (falta).
+2. **Crea lo que falta**: ejecuta, **en orden** y una sola vez, cada archivo de `supabase/migrations/` que salió `false`:
+
+   | Archivo | Qué crea |
+   |---|---|
+   | `20261118000001_base_empresas.sql` | empresas, perfiles, miembros (seguro ya lo tienes) |
+   | `20261119000001_equipo_areas.sql` | áreas e invitaciones (seguro ya lo tienes) |
+   | `20261120000001_logistica.sql` | **terceros, almacenes, productos, stock, ordenes_compra, ordenes_compra_items, llegadas, salidas, movimientos** + funciones de stock |
+   | `20261121000001_logistica_plazos_crud.sql` | plazos de entrega, seguimiento al cliente, editar y eliminar |
+   | `20261122000001_accesos_solo_dueno.sql` | solo el dueño da accesos |
+   | `20261123000001_oc_formato_y_moneda.sql` | formato de la orden de compra, moneda y tipo de cambio |
+
+3. **Vuelve a ejecutar** `estado-migraciones.sql`: todo debe salir `true`.
+4. **Carga tus datos**: abre `supabase/datos-iniciales.sql`, cambia los ejemplos por tus almacenes, proveedores y productos (el RUC de la empresa arriba) y ejecútalo. Se puede correr varias veces sin duplicar.
+5. **Da acceso**: el dueño entra a la app → **Equipo y accesos** → invita al encargado con rol *Trabajador* y área **Logística**.
+6. **Stock inicial**: desde la app, **Llegadas → Registrar llegada → "Compra directa u otro ingreso"** (así queda en el kardex con su costo).
+7. **Publicar la app**: el código nuevo debe subirse al repositorio y desplegarse (Render/Cloudflare se actualizan con cada push a `main`). Hasta entonces, la app en la nube no tiene estas pantallas.
+
 ## Cómo crear las tablas en Supabase
 
 Son **cuatro archivos** y se ejecutan **en este orden** (una sola vez cada uno):
