@@ -139,7 +139,7 @@
               (ngModelChange)="cambiar(i, 'costo', $event)"
               [min]="0"
               mode="currency"
-              currency="PEN"
+              [currency]="enDolares() ? 'USD' : 'PEN'"
               locale="es-PE"
               [maxFractionDigits]="4"
               inputStyleClass="w-full"
@@ -161,6 +161,31 @@
     @case (3) {
       <div class="confirmar">
         <div class="lg-form">
+          @if (enDolares()) {
+            <div class="full tc">
+              <label for="ll-tc"
+                >Tipo de cambio del día
+                <small>(la orden está en dólares; el inventario se lleva en soles)</small></label
+              >
+              <div class="tc-fila">
+                <span>S/</span>
+                <input
+                  id="ll-tc"
+                  type="number"
+                  min="0"
+                  step="0.001"
+                  class="p-inputtext"
+                  placeholder="3.750"
+                  [ngModel]="tipoCambio()"
+                  (ngModelChange)="tipoCambio.set($event)"
+                />
+                <span
+                  >por cada US$ · {{ total() | number: '1.2-2' }} US$ =
+                  <b>S/ {{ totalSoles() | number: '1.2-2' }}</b></span
+                >
+              </div>
+            </div>
+          }
           <div>
             <label for="ll-fecha">¿Qué día llegó?</label>
             <input
@@ -229,7 +254,7 @@
           </div>
           <div class="fila total">
             <span>Valor ingresado</span
-            ><strong>{{ total() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
+            ><strong>{{ totalSoles() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}</strong>
           </div>
         </div>
       </div>

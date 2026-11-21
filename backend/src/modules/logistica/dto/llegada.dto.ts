@@ -3,6 +3,8 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsDateString,
+  IsIn,
+  ValidateIf,
   IsArray,
   IsNumber,
   IsOptional,
@@ -14,6 +16,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import type { FilaLlegada } from '../entities/documento.entity.js';
+import { codigoOc } from '../entities/orden-compra.entity.js';
 
 export class ItemLlegadaDto {
   @ApiProperty({ format: 'uuid' }) @IsUUID() productoId!: string;
@@ -50,6 +53,31 @@ export class CrearLlegadaDto {
   @IsString()
   @MaxLength(500)
   notas?: string;
+
+  @ApiPropertyOptional({
+    example: '2026-11-20T10:30:00-05:00',
+    description: 'Cuándo llegó de verdad (por defecto: ahora)',
+  })
+  @IsOptional()
+  @IsDateString()
+  fecha?: string;
+
+  @ApiPropertyOptional({
+    enum: ['PEN', 'USD'],
+    description: 'Moneda de la OC; los costos de items van YA en soles',
+  })
+  @IsOptional()
+  @IsIn(['PEN', 'USD'])
+  moneda?: 'PEN' | 'USD';
+
+  @ApiPropertyOptional({
+    example: 3.75,
+    description: 'Obligatorio si moneda = USD',
+  })
+  @ValidateIf((o: CrearLlegadaDto) => o.moneda === 'USD')
+  @IsNumber({}, { message: 'Indica el tipo de cambio' })
+  @IsPositive({ message: 'El tipo de cambio debe ser mayor a 0' })
+  tipoCambio?: number;
 
   @ApiProperty({ type: [ItemLlegadaDto] })
   @IsArray()
@@ -106,6 +134,9 @@ export class LlegadaDto {
   @ApiPropertyOptional({ nullable: true, type: String }) comprobante!:
     string | null;
   @ApiPropertyOptional({ nullable: true, type: String }) notas!: string | null;
+  @ApiProperty({ enum: ['PEN', 'USD'] }) moneda!: 'PEN' | 'USD';
+  @ApiPropertyOptional({ nullable: true, type: Number }) tipoCambio!:
+    number | null;
   @ApiProperty({ type: [LineaDocumentoDto] }) lineas!: LineaDocumentoDto[];
   @ApiProperty() total!: number;
 
@@ -122,9 +153,11 @@ export class LlegadaDto {
       orden: f.orden
         ? {
             id: f.orden.id,
-            codigo: `OC-${String(f.orden.numero).padStart(6, '0')}`,
+            codigo: codigoOc(f.orden.numero, f.orden.fecha),
           }
         : null,
+      moneda: f.moneda ?? 'PEN',
+      tipoCambio: f.tipo_cambio == null ? null : Number(f.tipo_cambio),
       guiaRemision: f.guia_remision,
       comprobante: f.comprobante,
       notas: f.notas,

@@ -58,6 +58,15 @@ export class Panel implements OnInit {
   protected readonly colorLlegada = colorLlegada;
   protected readonly colorCliente = colorCliente;
 
+  /** Valor que falta llegar, por moneda (no se mezclan soles con dólares). */
+  protected readonly enCamino = computed(() => {
+    const t = { PEN: 0, USD: 0 };
+    for (const o of this.ordenes())
+      if (o.estado === 'enviada' || o.estado === 'parcial')
+        t[o.moneda] += o.subtotal * (1 - o.avance / 100);
+    return t;
+  });
+
   /** Lo que está en camino, lo más próximo (o atrasado) primero. */
   protected readonly proximas = computed(() =>
     this.ordenes()

@@ -1,5 +1,14 @@
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { Component, computed, effect, inject, model, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  model,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -82,18 +91,22 @@ export class SalidaAsistente {
   constructor() {
     effect(() => {
       if (!this.visible()) return;
-      this.paso.set(1);
-      this.motivo.set('servicio_tecnico');
-      this.almacenId.set(
-        this.store.almacenesActivos().find((a) => a.tipo === 'principal')?.id ?? null,
-      );
-      this.destinoId.set(null);
-      this.destino.set('');
-      this.responsable.set('');
-      this.referencia.set('');
-      this.notas.set('');
-      this.lineas.set([]);
-      this.error.set(null);
+      // Solo se reinicia al ABRIR (o al cambiar lo que se abre). Lo demás se lee sin
+      // suscribirse: si no, recargar los catálogos a mitad de un guardado borraba el formulario.
+      untracked(() => {
+        this.paso.set(1);
+        this.motivo.set('servicio_tecnico');
+        this.almacenId.set(
+          this.store.almacenesActivos().find((a) => a.tipo === 'principal')?.id ?? null,
+        );
+        this.destinoId.set(null);
+        this.destino.set('');
+        this.responsable.set('');
+        this.referencia.set('');
+        this.notas.set('');
+        this.lineas.set([]);
+        this.error.set(null);
+      });
     });
   }
 

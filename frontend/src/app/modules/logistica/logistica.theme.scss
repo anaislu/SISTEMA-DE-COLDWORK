@@ -1107,3 +1107,15 @@
 .lg-peligro:hover {
   background: #fef2f2 !important;
 }
+
+// Tipo de cambio en la llegada
+.tc-fila {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.86rem;
+}
+.tc-fila input {
+  width: 8rem !important;
+}

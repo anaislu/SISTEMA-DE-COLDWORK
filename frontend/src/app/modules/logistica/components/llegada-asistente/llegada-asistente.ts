@@ -1,5 +1,15 @@
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
-import { Component, computed, effect, inject, input, model, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  model,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -64,6 +74,13 @@ export class LlegadaAsistente {
   protected readonly notas = signal('');
   /** Día en que llegó de verdad (por defecto hoy). */
   protected readonly fechaLlegada = signal(hoyISO());
+  /** Solo si la OC está en dólares: S/ por cada US$ (el inventario se lleva en soles). */
+  protected readonly tipoCambio = signal<number | null>(null);
+  protected readonly enDolares = computed(() => this.orden()?.moneda === 'USD');
+  /** Total en soles (lo que entra al inventario). */
+  protected readonly totalSoles = computed(() =>
+    this.enDolares() ? this.total() * (this.tipoCambio() ?? 0) : this.total(),
+  );
   protected readonly hoy = hoyISO();
   protected readonly guardando = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -103,21 +120,27 @@ export class LlegadaAsistente {
   constructor() {
     effect(() => {
       if (!this.visible()) return;
-      this.paso.set(1);
-      this.error.set(null);
-      this.guia.set('');
-      this.comprobante.set('');
-      this.notas.set('');
-      this.fechaLlegada.set(hoyISO());
-      this.lineas.set([]);
-      this.proveedorId.set(null);
-      const ini = this.ordenInicial();
-      this.modo.set(ini || this.ordenes().length ? 'oc' : 'directa');
-      this.ordenId.set(null);
-      this.almacenId.set(
-        this.store.almacenesActivos().find((a) => a.tipo === 'principal')?.id ?? null,
-      );
-      if (ini) this.elegirOrden(ini);
+      // Solo se reinicia al ABRIR (o al cambiar lo que se abre). Lo demás se lee sin
+      // suscribirse: si no, recargar los catálogos a mitad de un guardado borraba el formulario.
+      this.ordenInicial();
+      untracked(() => {
+        this.paso.set(1);
+        this.error.set(null);
+        this.guia.set('');
+        this.comprobante.set('');
+        this.notas.set('');
+        this.fechaLlegada.set(hoyISO());
+        this.tipoCambio.set(null);
+        this.lineas.set([]);
+        this.proveedorId.set(null);
+        const ini = this.ordenInicial();
+        this.modo.set(ini || this.ordenes().length ? 'oc' : 'directa');
+        this.ordenId.set(null);
+        this.almacenId.set(
+          this.store.almacenesActivos().find((a) => a.tipo === 'principal')?.id ?? null,
+        );
+        if (ini) this.elegirOrden(ini);
+      });
     });
   }
 
@@ -175,6 +198,11 @@ export class LlegadaAsistente {
   }
 
   async registrar() {
+    if (this.enDolares() && !(this.tipoCambio()! > 0)) {
+      this.error.set('La orden está en dólares: indica el tipo de cambio del día (S/ por US$).');
+      return;
+    }
+    const tc = this.enDolares() ? this.tipoCambio()! : 1;
     this.guardando.set(true);
     this.error.set(null);
     try {
@@ -188,10 +216,12 @@ export class LlegadaAsistente {
         comprobante: this.comprobante().trim(),
         notas: this.notas().trim(),
         fecha: aFechaHora(this.fechaLlegada()),
+        ...(this.enDolares() ? { moneda: 'USD' as const, tipoCambio: tc } : {}),
         items: this.lineas().map((l) => ({
           productoId: l.producto.id,
           cantidad: l.cantidad,
-          costoUnitario: l.costo,
+          // al inventario entra en soles
+          costoUnitario: Math.round(l.costo * tc * 10000) / 10000,
         })),
       });
       await this.store.recargar();

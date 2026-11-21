@@ -1,12 +1,15 @@
-import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DrawerModule } from 'primeng/drawer';
 import { LineaTiempo } from '../../components/linea-tiempo/linea-tiempo';
+import { ImportarCotizacion } from '../../components/importar-cotizacion/importar-cotizacion';
 import { OrdenDialogo } from '../../components/orden-dialogo/orden-dialogo';
+import { PdfOrden } from '../../components/pdf-orden/pdf-orden';
 import {
   ESTADOS_OC,
+  SIMBOLO,
   type EstadoOc,
   type OrdenCompra,
   type Producto,
@@ -26,12 +29,13 @@ import { OrdenesCompraService } from '../../services/ordenes-compra.service';
   selector: 'app-ordenes-compra',
   imports: [
     FormsModule,
-    CurrencyPipe,
     DatePipe,
     DecimalPipe,
     DrawerModule,
     OrdenDialogo,
     LineaTiempo,
+    ImportarCotizacion,
+    PdfOrden,
   ],
   templateUrl: './ordenes-compra.html',
   styleUrl: './ordenes-compra.scss',
@@ -57,6 +61,9 @@ export class OrdenesCompra implements OnInit {
   protected readonly sugeridos = signal<Producto[]>([]);
   protected readonly trabajando = signal(false);
   protected readonly fechaEntrega = signal(hoyISO());
+  protected readonly importar = signal(false);
+  protected readonly pdfVisible = signal(false);
+  protected readonly simbolo = SIMBOLO;
 
   protected readonly seg = seguimiento;
   protected readonly colorLlegada = colorLlegada;
@@ -103,11 +110,15 @@ export class OrdenesCompra implements OnInit {
     }
     return { atrasadas, riesgo, semana };
   });
-  protected readonly enCamino = computed(() =>
-    this.ordenes()
-      .filter((o) => o.estado === 'enviada' || o.estado === 'parcial')
-      .reduce((t, o) => t + o.total * (1 - o.avance / 100), 0),
-  );
+  /** Lo que falta llegar, por moneda (no se suman soles con dólares). */
+  protected readonly enCamino = computed(() => {
+    const t = { PEN: 0, USD: 0 };
+    for (const o of this.ordenes()) {
+      if (o.estado === 'enviada' || o.estado === 'parcial')
+        t[o.moneda] += o.total * (1 - o.avance / 100);
+    }
+    return t;
+  });
 
   async ngOnInit() {
     await Promise.all([this.cargar(), this.store.asegurar()]);
@@ -117,6 +128,7 @@ export class OrdenesCompra implements OnInit {
       const p = this.store.productoPorId().get(prod);
       this.nueva(p ? [p] : []);
     } else if (q.get('nuevo')) this.nueva();
+    else if (q.get('importar')) this.importar.set(true);
     else if (q.get('ver')) {
       const o = this.ordenes().find((x) => x.id === q.get('ver'));
       if (o) this.ver(o);

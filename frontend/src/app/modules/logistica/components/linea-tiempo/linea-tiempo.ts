@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import type { OrdenCompra } from '../../models/logistica.model';
 import {
@@ -28,7 +28,7 @@ interface Fila {
  */
 @Component({
   selector: 'app-linea-tiempo',
-  imports: [CurrencyPipe, DatePipe],
+  imports: [DatePipe, DecimalPipe],
   template: `
     <div class="lg-card lt">
       <div class="leyenda">
@@ -108,7 +108,9 @@ interface Fila {
                 ></i>
               }
             </div>
-            <div class="der">{{ f.o.total | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</div>
+            <div class="der">
+              {{ f.o.moneda === 'USD' ? 'US$' : 'S/' }} {{ f.o.total | number: '1.0-0' }}
+            </div>
           </button>
         } @empty {
           <div class="lg-vacio">
