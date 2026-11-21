@@ -9,12 +9,12 @@ import { AuthService } from '../../core/auth/services/auth.service';
 import { EmpresaActualService } from '../../core/empresa/services/empresa-actual.service';
 import { NOMBRE_ROL } from '../../core/permisos/areas';
 import { getConfig } from '../../core/config/runtime-config';
-import { Emoji } from '../../shared/components/emoji/emoji';
+import { Logo } from '../../shared/components/logo/logo';
 import { MENU } from './menu';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, ButtonModule, SelectModule, Emoji],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, ButtonModule, SelectModule, Logo],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })
@@ -34,7 +34,11 @@ export class Shell implements OnInit {
     return MENU.map((g) => ({
       ...g,
       items: g.items.filter((i) =>
-        i.soloAdmin ? this.empresa.esAdmin() : !i.area || this.empresa.puede(i.area),
+        i.soloDueno
+          ? this.empresa.esDueno()
+          : i.soloAdmin
+            ? this.empresa.esAdmin()
+            : !i.area || this.empresa.puede(i.area),
       ),
     })).filter((g) => g.items.length > 0);
   });

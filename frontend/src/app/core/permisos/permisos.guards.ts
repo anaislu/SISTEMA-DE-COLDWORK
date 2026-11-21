@@ -16,10 +16,18 @@ export const conArea =
     return empresa.puede(area) ? true : router.createUrlTree(['/'], { queryParams: { sinAcceso: area } });
   };
 
-/** Solo dueño y admin (Equipo, Configuración). */
+/** Solo dueño y admin (Configuración). */
 export const soloAdmin: CanActivateFn = async () => {
   const empresa = inject(EmpresaActualService);
   const router = inject(Router);
   await empresa.asegurar().catch(() => []);
   return empresa.esAdmin() ? true : router.createUrlTree(['/']);
+};
+
+/** Solo el dueño / CEO (Equipo y accesos: nadie más da accesos). */
+export const soloDueno: CanActivateFn = async () => {
+  const empresa = inject(EmpresaActualService);
+  const router = inject(Router);
+  await empresa.asegurar().catch(() => []);
+  return empresa.esDueno() ? true : router.createUrlTree(['/']);
 };
