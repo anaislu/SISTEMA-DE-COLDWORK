@@ -62,11 +62,13 @@ export class OrdenesCompraService {
       dto.entregaHasta ?? actual.entregaHasta,
     );
     if (
-      (dto.proveedorId || dto.almacenId) &&
+      (dto.proveedorId ||
+        dto.almacenId ||
+        (dto.moneda && dto.moneda !== actual.moneda)) &&
       actual.estado !== EstadoOc.Borrador
     ) {
       throw new BadRequestException(
-        'El proveedor y el almacén solo se cambian en borrador',
+        'El proveedor, el almacén y la moneda solo se cambian en borrador',
       );
     }
     if (
@@ -93,6 +95,16 @@ export class OrdenesCompraService {
       c.compromiso_cliente = dto.compromisoCliente;
     if (dto.entregadoCliente !== undefined)
       c.entregado_cliente = dto.entregadoCliente;
+    if (dto.condicionesPago !== undefined)
+      c.condiciones_pago = texto(dto.condicionesPago);
+    if (dto.lugarEntrega !== undefined)
+      c.lugar_entrega = texto(dto.lugarEntrega);
+    if (dto.atencion !== undefined) c.atencion = texto(dto.atencion);
+    if (dto.solicitadoPor !== undefined)
+      c.solicitado_por = texto(dto.solicitadoPor);
+    if (dto.cotizacionRef !== undefined)
+      c.cotizacion_ref = texto(dto.cotizacionRef);
+    if (dto.moneda !== undefined) c.moneda = dto.moneda;
 
     if (Object.keys(c).length) await this.repo.actualizar(u.token, e.id, id, c);
     if (dto.items) {

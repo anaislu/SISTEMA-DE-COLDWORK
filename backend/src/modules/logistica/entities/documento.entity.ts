@@ -26,14 +26,16 @@ export interface FilaLlegada {
   notas: string | null;
   almacen: { id: string; nombre: string } | null;
   proveedor: { id: string; razon_social: string } | null;
-  orden: { id: string; numero: number } | null;
+  orden: { id: string; numero: number; fecha: string } | null;
+  moneda: 'PEN' | 'USD';
+  tipo_cambio: number | null;
   lineas: FilaLinea[];
 }
 
-export const SELECT_LLEGADA = `id, numero, fecha, guia_remision, comprobante, notas,
+export const SELECT_LLEGADA = `id, numero, fecha, guia_remision, comprobante, notas, moneda, tipo_cambio,
   almacen:almacenes(id, nombre),
   proveedor:terceros(id, razon_social),
-  orden:ordenes_compra(id, numero),
+  orden:ordenes_compra(id, numero, fecha),
   lineas:movimientos(producto_id, almacen_id, tipo, cantidad, costo_unitario, producto:productos(sku, nombre, unidad))`;
 
 /** `public.salidas` con almacenes y líneas del kardex. */
